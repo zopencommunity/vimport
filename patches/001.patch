@@ -1,0 +1,19 @@
+diff --git a/src/auto/configure b/src/auto/configure
+index c53c710a6..80832875c 100755
+--- a/src/auto/configure
++++ b/src/auto/configure
+@@ -4982,13 +4982,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+ # end of CacheVal CvEbcdic
+ { $as_echo "$as_me:${as_lineno-$LINENO}: result: $cf_cv_ebcdic" >&5
+ $as_echo "$cf_cv_ebcdic" >&6; }
+-case "$cf_cv_ebcdic" in  #(vi
+-    yes)	$as_echo "#define EBCDIC 1" >>confdefs.h
+-
+-		line_break='"\\n"'
+-		;;
+-    *)		line_break='"\\012"';;
+-esac
++line_break='"\\n"'
+ 
+ 
+ if test "$cf_cv_ebcdic" = "yes"; then
