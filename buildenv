@@ -11,5 +11,5 @@ export ZOPEN_ROOT="${PWD}"
 export ZOPEN_TYPE="GIT"
 
 export ZOPEN_GIT_URL="https://github.com/vim/vim.git"
-export ZOPEN_GIT_DEPS="git make"
+export ZOPEN_GIT_DEPS="git make zoslib ncurses"
 export ZOPEN_EXTRA_CONFIGURE_OPTS="--with-features=big --without-x --enable-gui=no"
