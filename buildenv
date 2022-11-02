@@ -11,6 +11,6 @@ export ZOPEN_CHECK="skip"
 
 zopen_append_to_env() {
 cat <<EOF
-export VIM="\${PWD}/share/vim"
+export VIM="\${PWD}/share/vim/vim90"
 EOF
 }
