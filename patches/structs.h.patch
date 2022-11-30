@@ -1,0 +1,14 @@
+diff --git a/src/structs.h b/src/structs.h
+index 1a7a46c19..3ae060761 100644
+--- a/src/structs.h
++++ b/src/structs.h
+@@ -2811,6 +2811,9 @@ struct file_buffer
+ 				// b_ffname
+     char_u	*b_fname;	// current file name, points to b_ffname or
+ 				// b_sfname
++#ifdef __MVS__
++    int needs_conversion;
++#endif
+ 
+ #ifdef UNIX
+     int		b_dev_valid;	// TRUE when b_dev has a valid number
