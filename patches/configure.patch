@@ -1,5 +1,5 @@
 diff --git a/src/auto/configure b/src/auto/configure
-index 18836113b..2a65aceb6 100755
+index bcb40a782..a98d2979d 100755
 --- a/src/auto/configure
 +++ b/src/auto/configure
 @@ -4984,10 +4984,8 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
@@ -14,4 +14,13 @@ index 18836113b..2a65aceb6 100755
 +    *) line_break='"\\n"';;
  esac
  
+ 
+@@ -12054,7 +12052,7 @@ int main()
+ {char *s; s=(char *)tgoto("%p1%d", 0, 1); exit(!strcmp(s==0 ? "" : s, "1")); }
+ 
+ _ACEOF
+-if ac_fn_c_try_run "$LINENO"; then :
++if ac_fn_c_try_run "$LINENO" && test "$zOSUnix" = "no"; then :
+ 
+       vim_cv_terminfo=no
  
