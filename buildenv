@@ -28,8 +28,14 @@ export VIM="\${PWD}/share/vim/vim90"
 EOF
 }
 
+zopen_append_to_zoslib_env() {
+cat <<EOF
+VIM|set|PROJECT_ROOT/share/vim/vim90
+EOF
+}
+
 zopen_get_version() {
-  vr=$(./vim/src/vim --version | head -1 | cut -d ' ' -f5)
-  m=$(./vim/src/vim --version | head -2 | tail -1 | cut -d '-' -f2)
+  vr=$(./src/vim --version | head -1 | cut -d ' ' -f5)
+  m=$(./src/vim --version | head -2 | tail -1 | cut -d '-' -f2)
   echo "${vr}.${m}"
 }
