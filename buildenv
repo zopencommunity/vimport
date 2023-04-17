@@ -5,7 +5,6 @@ export ZOPEN_TYPE="GIT"
 
 export ZOPEN_GIT_URL="https://github.com/vim/vim.git"
 export ZOPEN_GIT_DEPS="git make zoslib ncurses"
-export ZOPEN_GIT_TAG="v9.0.0846"
 export ZOPEN_EXTRA_CONFIGURE_OPTS="--with-features=big --with-x=no --enable-gui=no --enable-cscope"
 export ZOPEN_CHECK="./src/vim"
 export ZOPEN_CHECK_OPTS="--version"

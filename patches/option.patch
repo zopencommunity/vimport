@@ -1,0 +1,29 @@
+diff --git a/src/option.c b/src/option.c
+index 1203180fb..9896c3711 100644
+--- a/src/option.c
++++ b/src/option.c
+@@ -434,9 +434,10 @@ set_init_default_encoding(void)
+     char_u	*p;
+     int		opt_idx;
+ 
+-# ifdef MSWIN
++# if defined(MSWIN) || defined(__MVS__)
+     // MS-Windows has builtin support for conversion to and from Unicode, using
+     // "utf-8" for 'encoding' should work best for most users.
++    // z/OS built should default to UTF-8 mode as setlocale does not respect utf-8 environment variable locales
+     p = vim_strsave((char_u *)ENC_DFLT);
+ # else
+     // enc_locale() will try to find the encoding of the current locale.
+diff --git a/src/option.h b/src/option.h
+index 487d87c31..4769abf2b 100644
+--- a/src/option.h
++++ b/src/option.h
+@@ -124,7 +124,7 @@ typedef enum {
+ #define ENC_UCSBOM	"ucs-bom"	// check for BOM at start of file
+ 
+ // default value for 'encoding'
+-#ifdef MSWIN
++#if defined(MSWIN) || defined(__MVS__)
+ # define ENC_DFLT	"utf-8"
+ #else
+ # define ENC_DFLT	"latin1"
