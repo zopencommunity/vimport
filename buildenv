@@ -4,7 +4,7 @@
 export ZOPEN_TYPE="GIT"
 
 export ZOPEN_GIT_URL="https://github.com/vim/vim.git"
-export ZOPEN_GIT_DEPS="git make zoslib ncurses"
+export ZOPEN_GIT_DEPS="git make zoslib ncurses diffutils coreutils findutils sed gawk"
 export ZOPEN_EXTRA_CONFIGURE_OPTS="--with-features=big --with-x=no --enable-gui=no --enable-cscope"
 export ZOPEN_CHECK="./src/vim"
 export ZOPEN_CHECK_OPTS="--version"
@@ -25,4 +25,16 @@ zopen_append_to_env() {
 cat <<EOF
 export VIM="\${PWD}/share/vim/vim90"
 EOF
+}
+
+zopen_append_to_zoslib_env() {
+cat <<EOF
+VIM|set|PROJECT_ROOT/share/vim/vim90
+EOF
+}
+
+zopen_get_version() {
+  vr=$(./src/vim --version | head -1 | cut -d ' ' -f5)
+  m=$(./src/vim --version | head -2 | tail -1 | cut -d '-' -f2)
+  echo "${vr}.${m}"
 }
