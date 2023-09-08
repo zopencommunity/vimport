@@ -9,6 +9,8 @@ export ZOPEN_EXTRA_CONFIGURE_OPTS="--with-features=big --with-x=no --enable-gui=
 export ZOPEN_CHECK="./src/vim"
 export ZOPEN_CHECK_OPTS="--version"
 
+export ZOPEN_RUNTIME_DEPS="ncurses" 
+
 zopen_check_results()
 {
   dir="$1"
