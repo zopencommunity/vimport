@@ -6,8 +6,10 @@ export ZOPEN_TYPE="GIT"
 export ZOPEN_GIT_URL="https://github.com/vim/vim.git"
 export ZOPEN_GIT_DEPS="git make zoslib ncurses diffutils coreutils findutils sed gawk"
 export ZOPEN_EXTRA_CONFIGURE_OPTS="--with-features=big --with-x=no --enable-gui=no --enable-cscope"
-export ZOPEN_CHECK="./src/vim"
-export ZOPEN_CHECK_OPTS="--version"
+#export ZOPEN_CHECK="./src/vim"
+#export ZOPEN_CHECK_OPTS="--version"
+export ZOPEN_CHECK="make"
+export ZOPEN_CHECK_OPTS="test -i"
 
 export ZOPEN_RUNTIME_DEPS="ncurses" 
 
@@ -16,11 +18,12 @@ zopen_check_results()
   dir="$1"
   pfx="$2"
   chk="$1/$2_check.log"
-  grep -q "VIM - Vi IMproved 9.0" $chk
-  failures=$?
-  echo "actualFailures:$failures"
-  echo "totalTests:1"
-  echo "expectedFailures:0"
+  exit 27
+#  grep -q "VIM - Vi IMproved 9.0" $chk
+#  failures=$?
+#  echo "actualFailures:$failures"
+#  echo "totalTests:1"
+#  echo "expectedFailures:0"
 }
 
 zopen_append_to_env() {
