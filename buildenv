@@ -5,7 +5,7 @@ export ZOPEN_DEV_DEPS="git make zoslib ncurses diffutils coreutils findutils sed
 export ZOPEN_EXTRA_CONFIGURE_OPTS="--with-features=big --with-x=no --enable-gui=no --enable-cscope"
 export ZOPEN_CHECK="make"
 export ZOPEN_CHECK_OPTS="test -i"
-
+export vim_cv_terminfo=yes
 export ZOPEN_RUNTIME_DEPS="ncurses" 
 
 #
