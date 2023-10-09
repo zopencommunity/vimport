@@ -1,4 +1,5 @@
 vim
 nohup.out
 log/
+log.DEV/
 install/
