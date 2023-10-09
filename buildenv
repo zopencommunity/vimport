@@ -25,7 +25,7 @@ zopen_check_results()
   echo "${errorSummary}" >"$1/$2_check_summary.log"
   echo "actualFailures:${failures}"
   echo "totalTests:${totalTests}"
-  echo "expectedFailures:${exptectedFailures}"
+  echo "expectedFailures:${expectedFailures}"
 }
 
 zopen_append_to_env() {
