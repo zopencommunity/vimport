@@ -1,5 +1,5 @@
 diff --git a/src/os_unix.c b/src/os_unix.c
-index 237171b4f..5ab8b9aae 100644
+index 237171b4f..300e3c34f 100644
 --- a/src/os_unix.c
 +++ b/src/os_unix.c
 @@ -1427,7 +1427,7 @@ mch_init(void)
@@ -11,35 +11,95 @@ index 237171b4f..5ab8b9aae 100644
      // Check whether we were invoked with SIGTSTP set to be ignored. If it is
      // that indicates the shell (or program) that launched us does not support
      // tty job control and thus we should ignore that signal. If invoked as a
-@@ -1681,6 +1681,34 @@ mch_input_isatty(void)
+@@ -1681,6 +1681,94 @@ mch_input_isatty(void)
      return FALSE;
  }
  
 +#ifdef __MVS__
++
++    #define MVS_DATASET_MAGIC_FD (32766)
++    #define MVS_DATASET_MAX (56) /* 44 characters plus ( plus 8 character member name plus ) plus // at the start */
++
 +    FILE* 
 +zos_fopen(const char* fname, const char* mode)
 +{
-+   fprintf(stderr, "fopen %s with mode %s\n", fname, mode);
-+   return fopen(fname, mode);
++   FILE* fp = fopen(fname, mode);
++   fprintf(stderr, "fopen %s with mode %s returns %p\n", fname, mode, fp);
++   return fp;
 +}
++
++static int
++getmaxlrecl(const char* dataset) 
++{
++    return 80; /* change to fopen dataset, do finfo, get lrecl, -1 if unable to open */
++}
++
 +    int
 +zos_open(const char* pathname, int flags, mode_t mode)
 +{
-+    int fd = open(pathname, flags, mode);
++    int fd;
++    if (pathname[0] == '/' && pathname[1] == '/') {
++	char* parenpos;
++	int lrecl;
++	FILE* fp;
++	if (strlen(pathname) > MVS_DATASET_MAX) {
++	    errno=ENAMETOOLONG;
++	    return -1; /* fail the open */
++	}
++
++	/* this is a dataset, not a UNIX file */
++	if ((parenpos = strchr(pathname, '('))) {
++	    char pds[MVS_DATASET_MAX+1];
++	    memcpy(pds, pathname, parenpos-pathname);
++	    pds[parenpos-pathname] = '\0';
++	    /* this is a PDS member */
++	    lrecl=getmaxlrecl(pds);
++	} else {
++	    lrecl=getmaxlrecl(pathname);
++	}
++	if (lrecl < 0) {
++	    fprintf(stderr, "Dataset %s does not exist. vim failing\n", pathname);
++	    errno=ENOENT;
++	    return -1; /* fail the open if the dataset does not exist yet - restriction on vim at this time */
++	}
++	fp = fopen(pathname, "r");
++	if (!fp) {
++	    perror("Unable to open dataset");
++	    fprintf(stderr, "Unable to open dataset %s. vim failing\n", pathname);
++	    return -1; /* fail the open if underlying fopen fails */
++	}
++
++	fprintf(stderr, "Need to restrict dataset %s to %d columns (max lrecl)\n", pathname, lrecl);
++	fd = MVS_DATASET_MAGIC_FD;
++    } else {
++	fd = open(pathname, flags, mode);
++    }
 +    fprintf(stderr, "open %s with flags 0x%x and mode 0x%x returns %d\n", pathname, flags, mode, fd);
 +    return fd;
 +}
 +   int
 +zos_fstat(int fd, struct stat* buf)
 +{
-+    fprintf(stderr, "stat %d with buffer:%p\n", fd, buf);
-+    return fstat(fd, buf);
++    int rc = fstat(fd, buf);
++    fprintf(stderr, "stat %d with buffer:%p returns %d\n", fd, buf, rc);
++    return rc;
 +}
 +   int
 +zos_access(const char* pathname, int mode)
 +{
-+   fprintf(stderr, "access %s with mode %d\n", pathname, mode);
-+   return access(pathname, mode);
++   int acc = access(pathname, mode);
++   fprintf(stderr, "access %s with mode %d returns 0x%x\n", pathname, mode, acc);
++   return acc;
++}
++   int 
++isdataset(int fd)
++{
++    /* super hack */
++    if (fd == MVS_DATASET_MAGIC_FD) {
++	return 1;
++    } else {
++	return 0;
++    }
 +}
 +#endif
 +
