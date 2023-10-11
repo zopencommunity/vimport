@@ -1,0 +1,13 @@
+diff --git a/src/vim.h b/src/vim.h
+index 2bafda424..09251c33e 100644
+--- a/src/vim.h
++++ b/src/vim.h
+@@ -2397,7 +2397,7 @@ typedef int (*opt_expand_cb_T)(optexpand_T *args, int *numMatches, char_u ***mat
+ 
+ // This must come after including proto.h.
+ // For VMS this is defined in macros.h.
+-#if !defined(MSWIN) && !defined(VMS)
++#if !defined(MSWIN) && !defined(VMS) && !defined(__MVS__)
+ # define mch_open(n, m, p)	open((n), (m), (p))
+ # define mch_fopen(n, p)	fopen((n), (p))
+ #endif

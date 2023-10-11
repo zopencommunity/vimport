@@ -1,0 +1,39 @@
+diff --git a/src/macros.h b/src/macros.h
+index cc2d11fdd..d420ea37b 100644
+--- a/src/macros.h
++++ b/src/macros.h
+@@ -155,7 +155,9 @@
+ # ifdef MSWIN
+ #  define mch_fstat(n, p)	_fstat64((n), (p))
+ # else
+-#  define mch_fstat(n, p)	fstat((n), (p))
++#  ifndef __MVS__
++#    define mch_fstat(n, p)	fstat((n), (p))
++#  endif
+ # endif
+ 
+ # ifdef MSWIN	// has its own mch_stat() function
+@@ -169,6 +171,12 @@
+ # endif
+ #endif
+ 
++#ifdef __MVS__
++# define mch_access(n, p)       zos_access((n), (p))
++# define mch_fstat(n, p)        zos_fstat((n), (p))
++# define mch_fopen(n, p)        zos_fopen((n), (p))
++#endif
++
+ #ifdef HAVE_LSTAT
+ # define mch_lstat(n, p)	lstat((n), (p))
+ #else
+@@ -184,6 +192,10 @@
+ # define mch_open(n, m, p)	open(vms_fixfilename(n), (m), (p))
+ #endif
+ 
++#ifdef __MVS__
++# define mch_open(n, m, p)      zos_open((n), (m), (p))
++#endif
++
+ // mch_open_rw(): invoke mch_open() with third argument for user R/W.
+ #if defined(UNIX) || defined(VMS)  // open in rw------- mode
+ # define mch_open_rw(n, f)	mch_open((n), (f), (mode_t)0600)

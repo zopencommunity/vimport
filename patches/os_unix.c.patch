@@ -1,0 +1,48 @@
+diff --git a/src/os_unix.c b/src/os_unix.c
+index 237171b4f..5ab8b9aae 100644
+--- a/src/os_unix.c
++++ b/src/os_unix.c
+@@ -1427,7 +1427,7 @@ mch_init(void)
+ 
+     out_flush();
+ 
+-#ifdef SIGTSTP
++#if defined(SIGTSTP) && !defined(__MVS__)
+     // Check whether we were invoked with SIGTSTP set to be ignored. If it is
+     // that indicates the shell (or program) that launched us does not support
+     // tty job control and thus we should ignore that signal. If invoked as a
+@@ -1681,6 +1681,34 @@ mch_input_isatty(void)
+     return FALSE;
+ }
+ 
++#ifdef __MVS__
++    FILE* 
++zos_fopen(const char* fname, const char* mode)
++{
++   fprintf(stderr, "fopen %s with mode %s\n", fname, mode);
++   return fopen(fname, mode);
++}
++    int
++zos_open(const char* pathname, int flags, mode_t mode)
++{
++    int fd = open(pathname, flags, mode);
++    fprintf(stderr, "open %s with flags 0x%x and mode 0x%x returns %d\n", pathname, flags, mode, fd);
++    return fd;
++}
++   int
++zos_fstat(int fd, struct stat* buf)
++{
++    fprintf(stderr, "stat %d with buffer:%p\n", fd, buf);
++    return fstat(fd, buf);
++}
++   int
++zos_access(const char* pathname, int mode)
++{
++   fprintf(stderr, "access %s with mode %d\n", pathname, mode);
++   return access(pathname, mode);
++}
++#endif
++
+ #ifdef FEAT_X11
+ 
+ # if defined(ELAPSED_TIMEVAL)
