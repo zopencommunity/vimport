@@ -1,5 +1,5 @@
 diff --git a/src/os_unix.c b/src/os_unix.c
-index 237171b4f..300e3c34f 100644
+index 237171b4f..8114216c7 100644
 --- a/src/os_unix.c
 +++ b/src/os_unix.c
 @@ -1427,7 +1427,7 @@ mch_init(void)
@@ -11,7 +11,7 @@ index 237171b4f..300e3c34f 100644
      // Check whether we were invoked with SIGTSTP set to be ignored. If it is
      // that indicates the shell (or program) that launched us does not support
      // tty job control and thus we should ignore that signal. If invoked as a
-@@ -1681,6 +1681,94 @@ mch_input_isatty(void)
+@@ -1681,6 +1681,195 @@ mch_input_isatty(void)
      return FALSE;
  }
  
@@ -34,6 +34,49 @@ index 237171b4f..300e3c34f 100644
 +    return 80; /* change to fopen dataset, do finfo, get lrecl, -1 if unable to open */
 +}
 +
++struct FP2FDEntry {
++    int fd;
++    FILE* fp;
++};
++
++static struct FP2FDEntry static_descriptor[16] = { {0} };
++static int
++addfp(FILE* fp) 
++{
++    int entry;
++    for (entry=0; entry<sizeof(static_descriptor)/sizeof(struct FP2FDEntry); ++entry) {
++	if (!static_descriptor[entry].fd) { /* found an empty slot */
++	    static_descriptor[entry].fd = MVS_DATASET_MAGIC_FD-entry;
++	    static_descriptor[entry].fp = fp;
++	    return static_descriptor[entry].fd;
++	}
++   }
++   fprintf(stderr, "Ran out of slots for open MVS datasets\n");
++   return 0;
++}
++
++static FILE*
++fd2fp(int fd) 
++{
++    int i;
++    for (i=0; i<sizeof(static_descriptor)/sizeof(struct FP2FDEntry); ++i) {
++	if (static_descriptor[i].fd == fd) {
++	    return static_descriptor[i].fp;
++	}
++    }
++    return NULL;
++}
++static int
++fp2fd(FILE* fp) 
++{
++    int i;
++    for (i=0; i<sizeof(static_descriptor)/sizeof(struct FP2FDEntry); ++i) {
++	if (static_descriptor[i].fp == fp) {
++	    return static_descriptor[i].fd;
++	}
++    }
++    return -1;
++}
 +    int
 +zos_open(const char* pathname, int flags, mode_t mode)
 +{
@@ -62,15 +105,23 @@ index 237171b4f..300e3c34f 100644
 +	    errno=ENOENT;
 +	    return -1; /* fail the open if the dataset does not exist yet - restriction on vim at this time */
 +	}
-+	fp = fopen(pathname, "r");
++	if (flags & O_RDONLY) {
++	    fp = fopen(pathname, "r");
++	} else if (flags & O_WRONLY) {
++	    fp = fopen(pathname, "w");
++	} else {
++	    fprintf(stderr, "Only support for read or write for a dataset. flags:0x%x\n", flags);
++	    return -1;
++	}
 +	if (!fp) {
 +	    perror("Unable to open dataset");
 +	    fprintf(stderr, "Unable to open dataset %s. vim failing\n", pathname);
 +	    return -1; /* fail the open if underlying fopen fails */
 +	}
-+
-+	fprintf(stderr, "Need to restrict dataset %s to %d columns (max lrecl)\n", pathname, lrecl);
-+	fd = MVS_DATASET_MAGIC_FD;
++	if (addfp(fp)) {
++	    return -1;
++	}
++	fd = fp2fd(fp);
 +    } else {
 +	fd = open(pathname, flags, mode);
 +    }
@@ -87,10 +138,60 @@ index 237171b4f..300e3c34f 100644
 +   int
 +zos_access(const char* pathname, int mode)
 +{
-+   int acc = access(pathname, mode);
-+   fprintf(stderr, "access %s with mode %d returns 0x%x\n", pathname, mode, acc);
++   int rc;
++   int acc;
++   if (pathname[0] == '/' && pathname[1] == '/') {
++     if (mode == R_OK) {
++	FILE* testfp = fopen(pathname, "rb");
++        fprintf(stderr, "access %s with mode 0x%x returns %d\n", pathname, mode, ((testfp == NULL) ? -1 : 0));
++	if (testfp) {
++	    fclose(testfp);
++	    acc = 0;
++	} else { 
++	    acc = -1;
++	}
++     } else if (mode == W_OK) {
++	FILE* testfp = fopen(pathname, "rb+");
++        fprintf(stderr, "access %s with mode 0x%x returns %d\n", pathname, mode, ((testfp == NULL) ? -1 : 0));
++	if (testfp) {
++	    fclose(testfp);
++	    acc = 0;
++	} else { 
++	    acc = -1;
++	}
++     } else {
++	fprintf(stderr, "No code to support access %s with mode 0x%x for dataset\n", pathname, mode);
++     }
++   } else {
++     acc = access(pathname, mode);
++   }
 +   return acc;
 +}
++   int
++zos_read(int fd, char* buf, size_t count) {
++   FILE* altfp = fd2fp(fd);
++   int rc;
++   if (altfp) {
++	rc = fread(buf, 1, count, altfp);
++	fprintf(stderr, "read %d with buffer %p count %d returns %d\n", fd, buf, count, rc);
++   } else {
++	rc = read(fd, buf, count);
++   }
++   return rc;
++}
++   int
++zos_write(int fd, char* buf, size_t count) {
++   FILE* altfp = fd2fp(fd);
++   int rc;
++   if (altfp) {
++	rc = fwrite(buf, 1, count, altfp);
++	fprintf(stderr, "write %d with buffer %p count %d returns %d\n", fd, buf, count, rc);
++   } else {
++	rc = write(fd, buf, count);
++   }
++   return rc;
++}
++
 +   int 
 +isdataset(int fd)
 +{

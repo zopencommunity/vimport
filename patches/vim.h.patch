@@ -1,8 +1,24 @@
 diff --git a/src/vim.h b/src/vim.h
-index 2bafda424..09251c33e 100644
+index 2bafda424..096c5cbf1 100644
 --- a/src/vim.h
 +++ b/src/vim.h
-@@ -2397,7 +2397,7 @@ typedef int (*opt_expand_cb_T)(optexpand_T *args, int *numMatches, char_u ***mat
+@@ -1837,8 +1837,13 @@ typedef void	    *vim_acl_T;		// dummy to pass an ACL to a function
+ # define vim_read(fd, buf, count)   read((fd), (char *)(buf), (unsigned int)(count))
+ # define vim_write(fd, buf, count)  write((fd), (char *)(buf), (unsigned int)(count))
+ #else
+-# define vim_read(fd, buf, count)   read((fd), (char *)(buf), (size_t) (count))
+-# define vim_write(fd, buf, count)  write((fd), (char *)(buf), (size_t) (count))
++# ifdef __MVS__
++#   define vim_read(fd, buf, count)   zos_read((fd), (char *)(buf), (size_t) (count))
++#   define vim_write(fd, buf, count)  zos_write((fd), (char *)(buf), (size_t) (count))
++# else
++#   define vim_read(fd, buf, count)   read((fd), (char *)(buf), (size_t) (count))
++#   define vim_write(fd, buf, count)  write((fd), (char *)(buf), (size_t) (count))
++# endif
+ #endif
+ 
+ /*
+@@ -2397,7 +2402,7 @@ typedef int (*opt_expand_cb_T)(optexpand_T *args, int *numMatches, char_u ***mat
  
  // This must come after including proto.h.
  // For VMS this is defined in macros.h.
