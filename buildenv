@@ -37,6 +37,7 @@ EOF
 zopen_append_to_zoslib_env() {
 cat <<EOF
 VIM|set|PROJECT_ROOT/share/vim/vim90
+ASCII_TERMINFO|set|PROJECT_ROOT/../../ncurses/ncurses/share/terminfo/
 EOF
 }
 
