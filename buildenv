@@ -28,12 +28,6 @@ zopen_check_results()
   echo "expectedFailures:${expectedFailures}"
 }
 
-zopen_append_to_env() {
-cat <<EOF
-export VIM="\${PWD}/share/vim/vim90"
-EOF
-}
-
 zopen_append_to_zoslib_env() {
 cat <<EOF
 VIM|set|PROJECT_ROOT/share/vim/vim90
