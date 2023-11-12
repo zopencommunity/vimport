@@ -1,5 +1,7 @@
-export ZOPEN_BUILD_LINE="DEV"
+# bump: vim-version /VIM_VERSION="(.*)"/ https://github.com/vim/vim.git|semver:*
+VIM_VERSION="9.0.2095"
 
+export ZOPEN_BUILD_LINE="DEV"
 export ZOPEN_DEV_URL="https://github.com/vim/vim.git"
 export ZOPEN_DEV_DEPS="git make zoslib ncurses diffutils coreutils findutils sed gawk"
 export ZOPEN_EXTRA_CONFIGURE_OPTS="--with-features=big --with-x=no --enable-gui=no --enable-cscope"
