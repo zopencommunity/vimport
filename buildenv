@@ -1,4 +1,4 @@
-# bump: vim-version /VIM_VERSION="(.*)"/ https://github.com/vim/vim.git|semver:*
+# bump: vim-version /VIM_VERSION="(.*)"/ https://github.com/vim/vim.git|semver:*|n.n.n|/\d00$/
 VIM_VERSION="9.0.2122"
 
 export ZOPEN_BUILD_LINE="DEV"
