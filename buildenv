@@ -1,5 +1,5 @@
 # bump: vim-version /VIM_VERSION="(.*)"/ https://github.com/vim/vim.git|semver:*|n.n.n|/\d00$/
-VIM_VERSION="9.0.2100"
+VIM_VERSION="9.1.0140"
 
 export ZOPEN_BUILD_LINE="STABLE"
 export ZOPEN_STABLE_URL="https://github.com/vim/vim.git"
@@ -12,6 +12,7 @@ export ZOPEN_CHECK="make"
 export ZOPEN_CHECK_OPTS="test -i"
 export vim_cv_terminfo=yes
 export ZOPEN_RUNTIME_DEPS="ncurses" 
+export ZOPEN_EXTRA_CPPFLAGS="-DMOTIF390_MNEMONIC_FIXED=1"
 
 #
 # See patch files for tests currently disabled (hangs, and unsupported screen dump tests)
@@ -34,8 +35,9 @@ zopen_check_results()
 }
 
 zopen_append_to_zoslib_env() {
-cat <<EOF
-VIM|overrideset|PROJECT_ROOT/share/vim/vim90
+  vim_version=$(echo $VIM_VERSION | awk -F. '{ printf $1$2 }')
+  cat <<EOF
+VIMRUNTIME|overrideset|PROJECT_ROOT/share/vim/vim${vim_version}
 ASCII_TERMINFO|set|PROJECT_ROOT/../../ncurses/ncurses/share/terminfo/
 EOF
 }

@@ -1,0 +1,13 @@
+diff --git a/src/vimtutor b/src/vimtutor
+index 3b154f288..6ff7ede57 100755
+--- a/src/vimtutor
++++ b/src/vimtutor
+@@ -50,7 +50,7 @@ fi
+ export TUTORCOPY
+ 
+ # remove the copy of the tutor on exit
+-trap "rm -rf $TODELETE" 0 1 2 3 9 11 13 15
++trap "rm -rf $TODELETE" 0 1 2 3 9 SIGSEGV SIGPIPE 15
+ 
+ for i in $seq; do
+     testvim=$(which $i 2>/dev/null)
