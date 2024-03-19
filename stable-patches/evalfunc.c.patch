@@ -1,0 +1,18 @@
+diff --git a/src/evalfunc.c b/src/evalfunc.c
+index 37010d7ba..e9bc95ff1 100644
+--- a/src/evalfunc.c
++++ b/src/evalfunc.c
+@@ -5911,6 +5911,13 @@ f_has(typval_T *argvars, typval_T *rettv)
+ 		1
+ #else
+ 		0
++#endif
++		},
++	{"zos",
++#ifdef __MVS__
++		1
++#else
++		0
+ #endif
+ 		},
+ 	{"win32unix",
