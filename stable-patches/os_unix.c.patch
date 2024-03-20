@@ -1,0 +1,43 @@
+diff --git a/src/os_unix.c b/src/os_unix.c
+index dae5bbe82..ac61ee582 100644
+--- a/src/os_unix.c
++++ b/src/os_unix.c
+@@ -1427,7 +1427,7 @@ mch_init(void)
+ 
+     out_flush();
+ 
+-#ifdef SIGTSTP
++#if defined(SIGTSTP) && !defined(__MVS__)
+     // Check whether we were invoked with SIGTSTP set to be ignored. If it is
+     // that indicates the shell (or program) that launched us does not support
+     // tty job control and thus we should ignore that signal. If invoked as a
+@@ -5935,6 +5935,29 @@ mch_job_start(char **argv, job_T *job, jobopt_T *options, int is_terminal)
+ 	if (options->jo_cwd != NULL && mch_chdir((char *)options->jo_cwd) != 0)
+ 	    _exit(EXEC_FAILED);
+ 
++#ifdef __MVS__
++
++  if (is_terminal) {
++    int tty_fd;
++    char *tty;
++
++    tty_fd = open ("/dev/tty", O_RDWR|O_NONBLOCK);
++
++    if (tty_fd < 0)
++      {
++        tty = (char *)ttyname (fileno (stdin));
++        tty_fd = open (tty, O_RDWR|O_NONBLOCK);
++      }
++    struct termios original_attributes;
++    tcgetattr(tty_fd, &original_attributes);
++    original_attributes.c_cflag &= ~PKTXTND; // Causes isues on z/OS
++    original_attributes.c_oflag |= (OPOST|ONLCR);
++    tcsetattr(tty_fd, TCSANOW, &original_attributes);
++    if (tty_fd >= 0)
++      close (tty_fd);
++  }
++#endif
++
+ 	// See above for type of argv.
+ 	execvp(argv[0], argv);
+ 
