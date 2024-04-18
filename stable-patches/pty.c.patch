@@ -1,0 +1,17 @@
+diff --git a/src/pty.c b/src/pty.c
+index f11a22dcd..b8dea655f 100644
+--- a/src/pty.c
++++ b/src/pty.c
+@@ -194,6 +194,12 @@ mch_openpty(char **ttyn)
+     if ((f = posix_openpt(O_RDWR | O_NOCTTY | O_EXTRA)) == -1)
+ 	return -1;
+ 
++#ifdef __MVS__
++    // Needed for z/OS so that the characters are not garbled if ptyp* is untagged
++    struct f_cnvrt cvtreq = {SETCVTON, 0, 1047};
++    fcntl(f, F_CONTROL_CVT, &cvtreq);
++#endif
++
+     // SIGCHLD set to SIG_DFL for grantpt() because it fork()s and
+     // exec()s pt_chmod
+     sigcld = mch_signal(SIGCHLD, SIG_DFL);
