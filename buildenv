@@ -7,7 +7,7 @@ export ZOPEN_STABLE_DEPS="git make zoslib ncurses diffutils coreutils findutils 
 export ZOPEN_STABLE_TAG="v${VIM_VERSION}"
 export ZOPEN_DEV_URL="https://github.com/vim/vim.git"
 export ZOPEN_DEV_DEPS="git make zoslib ncurses diffutils coreutils findutils sed gawk python lua bash"
-export ZOPEN_EXTRA_CONFIGURE_OPTS="--with-features=big --with-x=no --enable-gui=no --enable-cscope --enable-terminal --enable-channel --enable-luainterp=dynamic --enable-python3interp=dynamic"
+export ZOPEN_EXTRA_CONFIGURE_OPTS="--with-features=big --with-x=no --enable-gui=no --enable-cscope --enable-terminal --enable-channel --enable-luainterp=dynamic --enable-python3interp=dynamic  --with-compiledby=\${ZOPEN_VENDOR}"
 export ZOPEN_CHECK="skip" # TODO: terminal support causes tests to hang
 #export ZOPEN_CHECK="make"
 #export ZOPEN_CHECK_OPTS="test -i"
