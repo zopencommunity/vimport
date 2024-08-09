@@ -1,6 +1,7 @@
 #ifndef __DIO_H__
   #define __DIO_H__ 1
 
+  #include <stddef.h>
   enum DRECFM { 
     D_V=1, 
     D_F=2, 
@@ -26,6 +27,7 @@
     enum DRECFM recfm;
     enum DSORG dsorg;
     int dccsid;
+    void* internal;
   };
 
   /*
@@ -52,7 +54,7 @@
    * - dsorg : will be the dataset organization of the dataset
    * 
    */
-  DFILE* open_dataset(const char* dataset_name);
+  struct DFILE* open_dataset(const char* dataset_name);
 
   /*
    * read_dataset: read a dataset or dataset member into a buffer.

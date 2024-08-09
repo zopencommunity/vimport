@@ -3,3 +3,10 @@ nohup.out
 log/
 log.DEV/
 install/
+dataset-patch/src/*.lst
+dataset-patch/src/*.o
+dataset-patch/test/*.lst
+dataset-patch/test/*.o
+dataset-patch/test/basicread
+dataset-patch/test/basicwrite
+
