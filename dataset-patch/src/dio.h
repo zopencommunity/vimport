@@ -30,9 +30,9 @@
 
   /*
    * open_dataset: given a dataset name in the format:
-   *  'qual[.qual]*[(mem)]'
+   *  //'qual[.qual]*[(mem)]'
    * or:
-   *  qual[.qual]*[(mem)]
+   *  //qual[.qual]*[(mem)]
    *
    * return a DFILE structure. 
    * DFILE can be subsequently passed to the
@@ -55,7 +55,7 @@
   DFILE* open_dataset(const char* dataset_name);
 
   /*
-   * read_dataset: read a dataset, in binary or in text mode.
+   * read_dataset: read a dataset or dataset member into a buffer.
    * Given a DFILE structure returned from open_dataset,
    * read_dataset will read the specified dataset, or dataset member
    * in binary or text (as specified by the is_binary flag).
@@ -67,10 +67,10 @@
    *   in each record. No extra data such as newlines are added to the buffer.
    * - bufflen will be the length of the buffer.
    */
-  int read_dataset(struct DFILE* dfile, BOOL is_binary);
+  int read_dataset(struct DFILE* dfile);
 
   /*
-   * write_dataset: write a dataset, in binary or in text mode.
+   * write_dataset: write a buffer to a dataset or dataset member.
    * Given a DFILE structure returned from open_dataset,
    * and a valid buffer and buffer length, write_dataset will write the
    * buffer to the dataset, or dataset member, replacing the previous contents,
@@ -84,7 +84,13 @@
    * - bufflen will be the length of the buffer.
    * Records must not be longer than the logical record length of the dataset. 
    */
-  int write_dataset(struct DFILE* dfile, BOOL is_binary); 
+  int write_dataset(struct DFILE* dfile); 
+
+  /*
+   * close_dataset: close the dataset and free allocated storage in the DFILE structure.
+   * Returns 0 if successful, non-zero otherwise.
+   * Will set errno if an I/O error occurred
+   */ 
   int close_dataset(struct DFILE* dfile);
 
 #endif
