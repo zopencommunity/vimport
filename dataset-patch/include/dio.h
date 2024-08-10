@@ -95,4 +95,20 @@
    */ 
   int close_dataset(struct DFILE* dfile);
 
+  /*
+   * dsorgs: return a string representing the dataset organization
+   */
+  const char* dsorgs(enum DSORG dsorg);
+
+  /*
+   * recfms: return a string representing the record format
+   */
+  const char* recfms(enum DRECFM drecfm);
+
+  /*
+   * dccsids: return a string representing the CCSID
+   * Note: a buffer at least DCCSIDS_MAX should be passed in
+   */
+  #define DCCSID_MAX (11)
+  const char* dccsids(int dccsid, char* buf);
 #endif
