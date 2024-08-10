@@ -213,6 +213,18 @@ static const char* dstates(enum DSTATE dstate)
   return "UNK";
 }
 
+static FILE* opendd(struct DIFILE* difile, const char* openfmt)
+{
+ char copendd[DD_MAX+MEM_MAX+2+2+2+1+1];
+  if (has_member(difile)) {
+    sprintf(copendd, "//DD:%s(%s)", difile->ddname, difile->member_name);
+  } else {
+    sprintf(copendd, "//DD:%s", difile->ddname);
+  }
+  FILE* fp = fopen(copendd, openfmt);
+  return fp;
+}
+
 struct DFILE* open_dataset(const char* dataset_name)
 {
 
@@ -261,13 +273,7 @@ struct DFILE* open_dataset(const char* dataset_name)
    * but this is 'good enough' for now since the C I/O services don't let us do better 
    */
 
-  char copendd[DD_MAX+MEM_MAX+2+2+2+1+1];
-  if (has_member(difile)) {
-    sprintf(copendd, "//DD:%s(%s)", difile->ddname, difile->member_name);
-  } else {
-    sprintf(copendd, "//DD:%s", difile->ddname);
-  }
-  difile->fp = fopen(copendd, "rb");
+  difile->fp = opendd(difile, "rb,type=record");
   if (difile->fp) {
     difile->dstate = D_READ_BINARY;
   } else {
@@ -281,7 +287,7 @@ struct DFILE* open_dataset(const char* dataset_name)
        * member, we should know this now now rather than later.
        */
      
-      difile->fp = fopen(copendd, "wb");
+      difile->fp = opendd(difile, "wb,type=record");
       if (!difile->fp) {
         return NULL;
       }
@@ -342,8 +348,53 @@ struct DFILE* open_dataset(const char* dataset_name)
   return dfile;
 }
 
+#define INIT_READ_BUFFER_SIZE (1<<24) /* 16MB */
+#define DS_MAX_REC_SIZE (32768)
 int read_dataset(struct DFILE* dfile)
 {
+  struct DIFILE* difile = (struct DIFILE*) (dfile->internal);
+  char record[DS_MAX_REC_SIZE];
+  int rc;
+
+  if (difile->dstate == D_WRITE_BINARY) {
+    rc=fclose(difile->fp);
+    if (rc) {
+      fprintf(stderr, "Unable to close open file pointer for subsequent read of dataset %s\n", difile->dataset_name);
+      return rc;
+    }
+    difile->dstate = D_CLOSED;
+  }
+
+  if (difile->dstate == D_CLOSED) {
+    difile->fp = opendd(difile, "rb,type=record");
+    if (!difile->fp) {
+      return 4;
+    }
+  }
+
+  if ((difile->read_buffer_size == 0) || (dfile->buffer == NULL)) {
+    difile->read_buffer_size = INIT_READ_BUFFER_SIZE;
+    dfile->buffer = malloc(difile->read_buffer_size);
+    if (!dfile->buffer) {
+      fprintf(stderr, "Unable to acquire storage to read dataset %s\n", difile->dataset_name);
+      return 8;
+    }
+  }
+  difile->cur_read_offset = 0;
+
+  if (dfile->recfm != D_F) {
+    fprintf(stderr, "To be implemented - need to write code to read non-fixed record files\n");
+    return 8;
+  }
+  while (rc = fread(record, 1, sizeof(record), difile->fp) > 0) {
+    memcpy(&dfile->buffer[difile->cur_read_offset], record, rc);
+    difile->cur_read_offset += (dfile->reclen);
+    if (difile->cur_read_offset > difile->read_buffer_size) {
+      fprintf(stderr, "To be implemented - need to write code to grow buffer for reading in file\n");
+      return 8;
+    }
+  }
+  dfile->bufflen = difile->cur_read_offset;
   return 0;
 }
 int write_dataset(struct DFILE* dfile)

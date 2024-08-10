@@ -19,5 +19,7 @@
     char ddname[DD_MAX+1];
     FILE* fp;
     enum DSTATE dstate;
+    size_t read_buffer_size;
+    size_t cur_read_offset;
   };
 #endif

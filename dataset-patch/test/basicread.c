@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
     return 4;
   }
 
-  printf("Read %d bytes from dataset %s\n", rc, relds);
+  printf("Read %d bytes from dataset %s\n", dfile->bufflen, relds);
 
   rc = close_dataset(dfile);
   if (rc) {
