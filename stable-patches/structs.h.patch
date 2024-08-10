@@ -1,13 +1,16 @@
 diff --git a/src/structs.h b/src/structs.h
-index 1a7a46c19..3ae060761 100644
+index 36339c434..1bcc91974 100644
 --- a/src/structs.h
 +++ b/src/structs.h
-@@ -2811,6 +2811,9 @@ struct file_buffer
+@@ -3035,6 +3035,12 @@ struct file_buffer
  				// b_ffname
      char_u	*b_fname;	// current file name, points to b_ffname or
  				// b_sfname
 +#ifdef __MVS__
 +    int needs_conversion;
++    int is_dataset;
++    char_u *dsname;
++    //DFILE* ds_info;
 +#endif
  
  #ifdef UNIX
