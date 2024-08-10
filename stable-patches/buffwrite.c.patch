@@ -1,5 +1,5 @@
 diff --git a/src/bufwrite.c b/src/bufwrite.c
-index bf79ad5bf..78f98662b 100644
+index bf79ad5bf..fd0cc93ea 100644
 --- a/src/bufwrite.c
 +++ b/src/bufwrite.c
 @@ -1898,6 +1898,20 @@ restore_backup:
@@ -23,3 +23,49 @@ index bf79ad5bf..78f98662b 100644
  	    write_info.bw_fd = fd;
  
  #if defined(UNIX)
+@@ -2610,6 +2624,45 @@ nofail:
+ 
+ 	curbuf->b_no_eol_lnum = 0;  // in case it was set by the previous read
+ 
++#ifdef __MVS__
++  //TODO: turn this into a function
++  if (curbuf->is_dataset) {
++    int fd;
++    if ((fd = open(fname, O_RDONLY)) == -1) {
++        return -1;
++    }
++    __disableautocvt(fd);
++
++    //TODO: make it loop
++    char buffer[1024 * 1024];
++    ssize_t bytesread = read(fd, buffer, sizeof(buffer) - 1);
++
++    if (bytesread == -1) {
++        close(fd);
++        return -1;
++    }
++
++    buffer[bytesread] = '\0';
++
++    close(fd);
++
++    // Write back to the dataset
++    FILE* fp;
++    if (NULL == (fp = fopen(curbuf->dsname, "w"))) {
++        return -1;
++    }
++    __disableautocvt(fileno(fp));
++
++    // Write the contents of the buffer into the dataset
++    if (fwrite(buffer, sizeof(char), bytesread, fp) != bytesread) {
++        fclose(fp);
++        return -1;
++    }
++
++    fclose(fp);
++}
++#endif
++
+ 	// Apply POST autocommands.
+ 	// Careful: The autocommands may call buf_write() recursively!
+ 	// Only do this when a window was found for "buf".

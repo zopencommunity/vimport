@@ -1,0 +1,96 @@
+diff --git a/src/buffer.c b/src/buffer.c
+index 58e9718e3..549f54843 100644
+--- a/src/buffer.c
++++ b/src/buffer.c
+@@ -71,6 +71,21 @@ static int	buf_free_count = 0;
+ static int	top_file_num = 1;	// highest file number
+ static garray_T buf_reuse = GA_EMPTY;	// file numbers to recycle
+ 
++
++#ifdef __MVS__
++int is_dataset(const char *filename) {
++  if (filename == NULL || strlen(filename) < 2) {
++    return 0;
++  }
++
++  if (filename[0] == '/' && filename[1] == '/') {
++    return 1;
++  }
++
++  return 0;
++}
++#endif
++
+ /*
+  * Return the highest possible buffer number.
+  */
+@@ -2101,6 +2116,56 @@ buflist_new(
+     if (top_file_num == 1)
+ 	hash_init(&buf_hashtab);
+ 
++    if (ffname != NULL)
++    {
++      //TODO: turn into a function
++      if (is_dataset(ffname)) {
++        curbuf->dsname = ffname;
++
++        //TODO: use Mike's interface once ready
++        FILE *fp;
++        if (NULL == (fp = fopen(ffname, "r"))) {
++            return -1;
++        }
++
++        //TODO: Read in chunks
++        char buffer[1024 * 1024];
++        size_t bytesread = fread(buffer, sizeof(char), sizeof(buffer) - 1, fp);
++        
++        if (bytesread == 0 && ferror(fp)) {
++            fclose(fp);
++            return -1;
++        }
++        
++        // Null-terminate the buffer
++        buffer[bytesread] = '\0';
++
++        // Create a temporary file to represent the dataset
++        ffname = vim_tempname('z', TRUE);
++        sfname = ffname;
++        curbuf->is_dataset = 1;
++        fprintf(stderr, "ffname: %s, bytes: %d\n", ffname, bytesread);
++
++        int temp_fd;
++        if ((temp_fd = open(ffname, O_WRONLY | O_CREAT | O_TRUNC, 0666)) == -1) {
++            fclose(fp);
++            close(temp_fd);
++            return -1;
++        }
++        __disableautocvt(temp_fd);
++
++        if (write(temp_fd, buffer, bytesread) != bytesread) {
++            fclose(fp);
++            close(temp_fd);
++            return -1;
++        }
++        //TODO: use locale codepage
++        __chgfdccsid(temp_fd, 1047);
++
++        fclose(fp);
++        close(temp_fd);
++      } 
++    } 
+     fname_expand(curbuf, &ffname, &sfname);	// will allocate ffname
+ 
+     /*
+@@ -2195,9 +2260,10 @@ buflist_new(
+ 
+     if (ffname != NULL)
+     {
+-	buf->b_ffname = ffname;
+-	buf->b_sfname = vim_strsave(sfname);
++      buf->b_ffname = ffname;
++      buf->b_sfname = vim_strsave(sfname);
+     }
++   
+ 
+     clear_wininfo(buf);
+     buf->b_wininfo = ALLOC_CLEAR_ONE(wininfo_T);
