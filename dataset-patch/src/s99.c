@@ -6,6 +6,30 @@
 #include "s99.h"
 #include "wrappers.h"
 
+int S99(struct s99rb* __ptr32 s99rb)
+{
+  return S99A(s99rb);
+}
+int S99MSG(struct s99_em* __ptr32 s99em)
+{
+  return S99MSGA(s99em);
+}
+
+void dumpstg(FILE* stream, void* p, size_t len)
+{
+  char* buff = p;
+  size_t i;
+  for (i=0; i<len; ++i) {
+    if ((i != 0) && (i % 16 == 0)) {
+      fprintf(stream, "\n");
+    }
+    if (i % 4 == 0) {
+      fprintf(stream, " ");
+    }
+    fprintf(stream, "%2.2X", buff[i]);
+  }
+}
+
 static size_t text_unit_size(struct s99_text_unit* inunit) 
 {
 	struct s99_basic_text_unit* tunit = (struct s99_basic_text_unit*) inunit;
