@@ -2,6 +2,7 @@
   #define __DIO_H__ 1
 
   #include <stddef.h>
+  #include <stdint.h>
   enum DRECFM { 
     D_V=1, 
     D_F=2, 
@@ -23,7 +24,7 @@
     const char* dataset_name; 
     char* buffer; 
     size_t bufflen; 
-    size_t reclen;
+    uint16_t reclen;
     enum DRECFM recfm;
     enum DSORG dsorg;
     int dccsid;
