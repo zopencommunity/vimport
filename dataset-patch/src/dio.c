@@ -228,6 +228,13 @@ static FILE* opendd(struct DIFILE* difile, const char* openfmt)
 struct DFILE* open_dataset(const char* dataset_name)
 {
 
+  /*
+   * We may want to change this, but for right now, we want
+   * to ensure that zero-length variable records are properly
+   * mapped
+   */
+  setenv("_EDC_ZERO_RECLEN", "1", 1);
+
   struct DFILE* dfile = calloc(1, sizeof(struct DFILE));
   if (!dfile) {
     return NULL;
@@ -382,21 +389,50 @@ int read_dataset(struct DFILE* dfile)
   }
   difile->cur_read_offset = 0;
 
-  if (dfile->recfm != D_F) {
-    fprintf(stderr, "To be implemented - need to write code to read non-fixed record files\n");
-    return 8;
+  int length_prefix;
+  switch (dfile->recfm) {
+    case D_F:
+    case D_FA:
+      length_prefix=0;
+      break;
+    case D_V:
+    case D_VA:
+    case D_U:
+      length_prefix=1;
   }
-  while (rc = fread(record, 1, sizeof(record), difile->fp) > 0) {
-    memcpy(&dfile->buffer[difile->cur_read_offset], record, rc);
-    difile->cur_read_offset += (dfile->reclen);
-    if (difile->cur_read_offset > difile->read_buffer_size) {
+
+  size_t size = 1;
+  size_t count = dfile->reclen;
+  size_t bytes_to_write;
+  uint16_t reclen;
+  while (1) {
+    rc = fread(record, size, count, difile->fp);
+    if (feof(difile->fp)) {
+      break;
+    }
+    bytes_to_write = rc;
+    if (length_prefix) {
+      bytes_to_write += sizeof(uint16_t);
+    }
+    if (difile->cur_read_offset + bytes_to_write > difile->read_buffer_size) {
       fprintf(stderr, "To be implemented - need to write code to grow buffer for reading in file\n");
       return 8;
     }
+    reclen = rc;
+    if (length_prefix) {
+      memcpy(&dfile->buffer[difile->cur_read_offset], &reclen, sizeof(reclen));
+      difile->cur_read_offset += sizeof(reclen);
+    }
+    memcpy(&dfile->buffer[difile->cur_read_offset], record, bytes_to_write);
+#ifdef DEBUG
+    printf("%5.5u <%*.*s>\n", reclen, reclen, reclen, record);
+#endif
+    difile->cur_read_offset += rc;
   }
   dfile->bufflen = difile->cur_read_offset;
   return 0;
 }
+
 int write_dataset(struct DFILE* dfile)
 {
   return 0;
