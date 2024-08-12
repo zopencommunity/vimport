@@ -1,11 +1,20 @@
-all: dio.o call31.o call31a.o s99.o s99a.o
-
-clean:
-	rm -f *.o *.lst
-
 IINCDIR=../intinclude
 INCDIR=../include
 MACDIR=../maclib
+
+AR=ar
+ARFLAGS=rcs
+ARCHIVE=libdio.a
+
+OBJ_FILES=dio.o call31.o call31a.o s99.o s99a.o
+
+all: $(ARCHIVE)
+
+$(ARCHIVE): $(OBJ_FILES)
+	$(AR) $(ARFLAGS) $@ $(OBJ_FILES)
+
+clean:
+	rm -f *.o *.lst $(ARCHIVE)
 
 call31.o: call31.c $(IINCDIR)/wrappers.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -I$(IINCDIR) -c $<

@@ -14,7 +14,20 @@ export ZOPEN_CHECK="skip" # TODO: terminal support causes tests to hang
 export vim_cv_terminfo=yes
 export ZOPEN_RUNTIME_DEPS="ncurses"
 export ZOPEN_EXTRA_CPPFLAGS="-DMOTIF390_MNEMONIC_FIXED=1 -DMODIFIED_BY='\\\""'${ZOPEN_VENDOR}'"\\\"'"
+export ZOPEN_MAKE="zopen_build"
 
+zopen_init()
+{
+  (cd $ZOPEN_ROOT/dataset-patch && ./build)
+  export LIBS="$LIBS -ldio"
+  export LDFLAGS="$LDFLAGS -L$ZOPEN_ROOT/datasetio_patch/src/"
+  export CPPFLAGS="$CPPFLAGS -L$ZOPEN_ROOT/datasetio_patch/include/"
+}
+
+zopen_build()
+{
+  make "$@"
+}
 #
 # See patch files for tests currently disabled (hangs, and unsupported screen dump tests)
 #
