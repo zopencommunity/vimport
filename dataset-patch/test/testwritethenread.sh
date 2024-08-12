@@ -16,8 +16,8 @@ dsu="U"
 dsfa="FBA"
 dsva="VBA"
 
-expected_output="./testread.expected"
-actual_output="/tmp/testread.$$.actual"
+expected_output="./testwritethenread.expected"
+actual_output="/tmp/testwritethenread.$$.actual"
 
 rm -f "${actual_output}"
 maxrc=0
