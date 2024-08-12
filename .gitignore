@@ -9,4 +9,4 @@ dataset-patch/test/*.lst
 dataset-patch/test/*.o
 dataset-patch/test/basicread
 dataset-patch/test/basicwrite
-
+dataset-patch/src/*.a

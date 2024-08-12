@@ -7,7 +7,7 @@
 #include "dioint.h"
 #include "wrappers.h"
 
-#define DEBUG 1
+/* #define DEBUG 1 */
 #define DD_SYSTEM "????????"
 #define ERRNO_NONEXISTANT_FILE (67)
 
