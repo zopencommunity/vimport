@@ -16,6 +16,10 @@ export ZOPEN_RUNTIME_DEPS="ncurses"
 export ZOPEN_EXTRA_CPPFLAGS="-DMOTIF390_MNEMONIC_FIXED=1 -DMODIFIED_BY='\\\""'${ZOPEN_VENDOR}'"\\\"'"
 export ZOPEN_COMP=CLANG
 
+zopen_build()
+{
+  make "$@"
+}
 #
 # See patch files for tests currently disabled (hangs, and unsupported screen dump tests)
 #
