@@ -1,5 +1,5 @@
 diff --git a/src/bufwrite.c b/src/bufwrite.c
-index bf79ad5bf..fd0cc93ea 100644
+index bf79ad5bf..54b4ada47 100644
 --- a/src/bufwrite.c
 +++ b/src/bufwrite.c
 @@ -1898,6 +1898,20 @@ restore_backup:
@@ -51,7 +51,7 @@ index bf79ad5bf..fd0cc93ea 100644
 +
 +    // Write back to the dataset
 +    FILE* fp;
-+    if (NULL == (fp = fopen(curbuf->dsname, "w"))) {
++    if (NULL == (fp = fopen(curbuf->dsfile->dataset_name, "w"))) {
 +        return -1;
 +    }
 +    __disableautocvt(fileno(fp));
