@@ -47,6 +47,7 @@
    * On successful return from open_dataset:
    * - dataset_name : will be the name of the dataset specified
    * - buffer : will be NULL
+   * - bufflen : will be 0
    * - reclen : will be the record length of the dataset. Note for 
    *   variable record formats, the length will include the 4 byte
    *   length prefix. Note for unformatted datasets, the length returned
@@ -90,7 +91,9 @@
   int write_dataset(struct DFILE* dfile); 
 
   /*
-   * close_dataset: close the dataset and free allocated storage in the DFILE structure.
+   * close_dataset: close the dataset and free the DFILE structure.
+   * NOTE: The buffer is NOT freed by close_dataset. 
+   * The caller should free the buffer when appropriate.
    * Returns 0 if successful, non-zero otherwise.
    * Will set errno if an I/O error occurred
    */ 
@@ -112,4 +115,10 @@
    */
   #define DCCSID_MAX (11)
   const char* dccsids(int dccsid, char* buf);
+
+  /*
+   * has_length_prefix: returns 1 if the record format requires length prefixes,
+   *                    0 otherwise.
+   */
+ int has_length_prefix(enum DRECFM recfm);
 #endif

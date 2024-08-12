@@ -7,7 +7,7 @@
 #include "dioint.h"
 #include "wrappers.h"
 
-/* #define DEBUG 1 */
+#define DEBUG 1
 #define DD_SYSTEM "????????"
 #define ERRNO_NONEXISTANT_FILE (67)
 
@@ -355,6 +355,22 @@ struct DFILE* open_dataset(const char* dataset_name)
   return dfile;
 }
 
+int has_length_prefix(enum DRECFM recfm)
+{
+  int length_prefix;
+  switch (recfm) {
+    case D_F:
+    case D_FA:
+    case D_U:
+      length_prefix=0;
+      break;
+    case D_V:
+    case D_VA:
+      length_prefix=1;
+  }
+  return length_prefix;
+}
+
 #define INIT_READ_BUFFER_SIZE (1<<24) /* 16MB */
 #define DS_MAX_REC_SIZE (32768)
 int read_dataset(struct DFILE* dfile)
@@ -389,32 +405,22 @@ int read_dataset(struct DFILE* dfile)
   }
   difile->cur_read_offset = 0;
 
-  int length_prefix;
-  switch (dfile->recfm) {
-    case D_F:
-    case D_FA:
-      length_prefix=0;
-      break;
-    case D_V:
-    case D_VA:
-    case D_U:
-      length_prefix=1;
-  }
+  int length_prefix = has_length_prefix(dfile->recfm);
 
   size_t size = 1;
   size_t count = dfile->reclen;
-  size_t bytes_to_write;
+  size_t bytes_to_copy;
   uint16_t reclen;
   while (1) {
     rc = fread(record, size, count, difile->fp);
     if (feof(difile->fp)) {
       break;
     }
-    bytes_to_write = rc;
+    bytes_to_copy = rc;
     if (length_prefix) {
-      bytes_to_write += sizeof(uint16_t);
+      bytes_to_copy += sizeof(uint16_t);
     }
-    if (difile->cur_read_offset + bytes_to_write > difile->read_buffer_size) {
+    if (difile->cur_read_offset + bytes_to_copy > difile->read_buffer_size) {
       fprintf(stderr, "To be implemented - need to write code to grow buffer for reading in file\n");
       return 8;
     }
@@ -423,7 +429,7 @@ int read_dataset(struct DFILE* dfile)
       memcpy(&dfile->buffer[difile->cur_read_offset], &reclen, sizeof(reclen));
       difile->cur_read_offset += sizeof(reclen);
     }
-    memcpy(&dfile->buffer[difile->cur_read_offset], record, bytes_to_write);
+    memcpy(&dfile->buffer[difile->cur_read_offset], record, bytes_to_copy);
 #ifdef DEBUG
     printf("%5.5u <%*.*s>\n", reclen, reclen, reclen, record);
 #endif
@@ -435,6 +441,63 @@ int read_dataset(struct DFILE* dfile)
 
 int write_dataset(struct DFILE* dfile)
 {
+  struct DIFILE* difile = (struct DIFILE*) (dfile->internal);
+  char record[DS_MAX_REC_SIZE];
+  int rc;
+
+  if ((dfile->bufflen == 0) || (dfile->buffer == NULL)) {
+    fprintf(stderr, "No buffer and/or buffer length not positive - no action performed\n");
+    return 16;
+  }
+
+  if (difile->dstate == D_READ_BINARY) {
+    rc=fclose(difile->fp);
+    if (rc) {
+      fprintf(stderr, "Unable to close open file pointer for subsequent write of dataset %s\n", difile->dataset_name);
+      return rc;
+    }
+    difile->dstate = D_CLOSED;
+  }
+
+  if (difile->dstate == D_CLOSED) {
+    difile->fp = opendd(difile, "wb,type=record");
+    if (!difile->fp) {
+      return 4;
+    }
+  }
+
+  int length_prefix = has_length_prefix(dfile->recfm);
+
+  size_t size = 1;
+  size_t buffer_offset = 0;
+
+  if (length_prefix) {
+    uint16_t reclen;
+    while (buffer_offset < dfile->bufflen) {
+      reclen = *((uint16_t*)(&dfile->buffer[buffer_offset]));
+      buffer_offset += sizeof(uint16_t);
+      rc = fwrite(&dfile->buffer[buffer_offset], size, reclen, difile->fp);
+      /*
+       * If we didn't write out a full record, something went wrong (e.g. dataset full)
+       */
+      if (rc < reclen) {
+        break;
+      }
+      buffer_offset += rc;
+    }
+  } else {
+    while (buffer_offset < dfile->bufflen) {
+      rc = fwrite(&dfile->buffer[buffer_offset], size, dfile->reclen, difile->fp);
+      /*
+       * If we didn't write out a full record, something went wrong (e.g. dataset full)
+       */
+      if (rc < dfile->reclen) {
+        break;
+      }
+      buffer_offset += rc;
+    }
+  }
+
   return 0;
 }
 
