@@ -1,8 +1,16 @@
 diff --git a/src/buffer.c b/src/buffer.c
-index 58e9718e3..549f54843 100644
+index 58e9718e3..d37bcca46 100644
 --- a/src/buffer.c
 +++ b/src/buffer.c
-@@ -71,6 +71,21 @@ static int	buf_free_count = 0;
+@@ -26,6 +26,7 @@
+  */
+ 
+ #include "vim.h"
++#include <_Nascii.h>
+ 
+ 
+ #ifdef FEAT_EVAL
+@@ -71,6 +72,21 @@ static int	buf_free_count = 0;
  static int	top_file_num = 1;	// highest file number
  static garray_T buf_reuse = GA_EMPTY;	// file numbers to recycle
  
@@ -24,64 +32,64 @@ index 58e9718e3..549f54843 100644
  /*
   * Return the highest possible buffer number.
   */
-@@ -2101,6 +2116,56 @@ buflist_new(
+@@ -2101,6 +2117,56 @@ buflist_new(
      if (top_file_num == 1)
  	hash_init(&buf_hashtab);
  
++  // Dataset I/O
++#ifdef __MVS__
 +    if (ffname != NULL)
 +    {
-+      //TODO: turn into a function
 +      if (is_dataset(ffname)) {
-+        curbuf->dsname = ffname;
++         
++        __a2e_s(ffname);
++        __ae_thread_swapmode(__AE_EBCDIC_MODE);
++        struct DFILE* dsfile = open_dataset(ffname);
++        __ae_thread_swapmode(__AE_ASCII_MODE);
++        if (!dsfile)
++          return NULL;
 +
-+        //TODO: use Mike's interface once ready
-+        FILE *fp;
-+        if (NULL == (fp = fopen(ffname, "r"))) {
-+            return -1;
++        __ae_thread_swapmode(__AE_EBCDIC_MODE);
++        if (read_dataset(dsfile)) {
++          __ae_thread_swapmode(__AE_ASCII_MODE);
++          return NULL;
 +        }
++        __ae_thread_swapmode(__AE_ASCII_MODE);
 +
-+        //TODO: Read in chunks
-+        char buffer[1024 * 1024];
-+        size_t bytesread = fread(buffer, sizeof(char), sizeof(buffer) - 1, fp);
-+        
-+        if (bytesread == 0 && ferror(fp)) {
-+            fclose(fp);
-+            return -1;
-+        }
-+        
-+        // Null-terminate the buffer
-+        buffer[bytesread] = '\0';
++        curbuf->dsfile = dsfile;
++        curbuf->is_dataset = 1; // Maybe we can just check dsfile != NULL?
 +
 +        // Create a temporary file to represent the dataset
 +        ffname = vim_tempname('z', TRUE);
 +        sfname = ffname;
-+        curbuf->is_dataset = 1;
-+        fprintf(stderr, "ffname: %s, bytes: %d\n", ffname, bytesread);
-+
++        
 +        int temp_fd;
++        //TODO: Copy permissions from dataset?
 +        if ((temp_fd = open(ffname, O_WRONLY | O_CREAT | O_TRUNC, 0666)) == -1) {
-+            fclose(fp);
-+            close(temp_fd);
-+            return -1;
++          close_dataset(dsfile);
++          close(temp_fd);
++          return NULL;
 +        }
 +        __disableautocvt(temp_fd);
 +
-+        if (write(temp_fd, buffer, bytesread) != bytesread) {
-+            fclose(fp);
-+            close(temp_fd);
-+            return -1;
++        if (write(temp_fd, dsfile->buffer, dsfile->bufflen) != dsfile->bufflen) {
++          close_dataset(dsfile);
++          close(temp_fd);
++          return NULL;
 +        }
-+        //TODO: use locale codepage
++
++        //TODO: Use the locale's codepage
 +        __chgfdccsid(temp_fd, 1047);
 +
-+        fclose(fp);
++        close_dataset(dsfile);
 +        close(temp_fd);
 +      } 
 +    } 
++#endif
      fname_expand(curbuf, &ffname, &sfname);	// will allocate ffname
  
      /*
-@@ -2195,9 +2260,10 @@ buflist_new(
+@@ -2195,9 +2261,10 @@ buflist_new(
  
      if (ffname != NULL)
      {
