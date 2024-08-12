@@ -1,13 +1,20 @@
 diff --git a/src/fileio.c b/src/fileio.c
-index 9916de8a6..e9f553673 100644
+index 07e05fc80..9feb0bf44 100644
 --- a/src/fileio.c
 +++ b/src/fileio.c
-@@ -472,6 +472,9 @@ readfile(
+@@ -485,6 +485,16 @@ readfile(
  				mch_access((char *)fname, W_OK))
  	    file_readonly = TRUE;
  	fd = mch_open((char *)fname, O_RDONLY | O_EXTRA, 0);
 +#ifdef __MVS__
 +  curbuf->needs_conversion = __file_needs_conversion(fd);
++  if (curbuf->is_dataset) {
++        curbuf->b_p_tw = curbuf->dsfile->reclen+1;
++	char cmd[256];
++	snprintf(cmd, sizeof(cmd), "set colorcolumn=%d", curbuf->dsfile->reclen+1);
++	do_cmdline_cmd((char_u *)cmd);
++	do_cmdline_cmd((char_u *)"set nowrap");
++  }
 +#endif
  #else
  	if (!newfile
