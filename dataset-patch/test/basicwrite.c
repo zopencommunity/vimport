@@ -47,7 +47,12 @@ int main(int argc, char* argv[]) {
   struct DFILE* dfile;
   char ccsidstr[DCCSID_MAX];
   char ds[54+1+2+2];
-  char* data[] = { "Line 1", "Line Number 2", "Line # 3", NULL };
+
+  /*
+   * Make first character blank so that ASA datasets see a valid
+   * character
+   */
+  char* data[] = { " Line 1", " Line Number 2", " Line # 3", NULL };
 
   if (argc != 3) {
     fprintf(stderr, "Syntax: argv[0] <hlq> <relative-dataset>\n");
