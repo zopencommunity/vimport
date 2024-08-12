@@ -3,18 +3,21 @@
 
   #include <stddef.h>
   #include <stdint.h>
+  #include <limits.h>
   enum DRECFM { 
     D_V=1, 
     D_F=2, 
     D_U=3, 
     D_VA=4, 
-    D_FA=5 
+    D_FA=5,
+    DRECFM_FORCE_INT=INT_MAX
   };
 
   enum DSORG { 
     D_PDS=1, 
     D_PDSE=2, 
-    D_SEQ=3 
+    D_SEQ=3,
+    DSORG_FORCE_INT=INT_MAX
   };
 
   #define DCCSID_BINARY (-1)
