@@ -1,5 +1,5 @@
 diff --git a/src/buffer.c b/src/buffer.c
-index 58e9718e3..5fd48012b 100644
+index 58e9718e3..a77f8904e 100644
 --- a/src/buffer.c
 +++ b/src/buffer.c
 @@ -26,6 +26,7 @@
@@ -32,7 +32,7 @@ index 58e9718e3..5fd48012b 100644
  /*
   * Return the highest possible buffer number.
   */
-@@ -2101,6 +2117,91 @@ buflist_new(
+@@ -2101,6 +2117,87 @@ buflist_new(
      if (top_file_num == 1)
  	hash_init(&buf_hashtab);
  
@@ -43,26 +43,24 @@ index 58e9718e3..5fd48012b 100644
 +      if (is_dataset(ffname)) {
 +         
 +        __a2e_s(ffname);
-+        __ae_thread_swapmode(__AE_EBCDIC_MODE);
 +        struct DFILE* dsfile = open_dataset(ffname);
-+        __ae_thread_swapmode(__AE_ASCII_MODE);
 +        if (!dsfile)
 +          return NULL;
 +
-+        __ae_thread_swapmode(__AE_EBCDIC_MODE);
 +        if (read_dataset(dsfile)) {
-+          __ae_thread_swapmode(__AE_ASCII_MODE);
 +          return NULL;
 +        }
-+        __ae_thread_swapmode(__AE_ASCII_MODE);
 +
 +        curbuf->dsname = strdup(ffname);
 +        curbuf->dsfile = dsfile;
 +        curbuf->is_dataset = 1; // Maybe we can just check dsfile != NULL?
 +
 +        // Create a temporary file to represent the dataset 
-+        // TODO add LLQ as suffix
++        // TODO add member well
 +        ffname = vim_tempname('z', TRUE);
++        char* llq = strdup(low_level_qualifier(dsfile));
++        __e2a_s(llq);
++	      vim_snprintf(ffname, 256, "%s.%s", ffname, llq);
 +        sfname = ffname;
 +        
 +        int temp_fd;
@@ -74,9 +72,7 @@ index 58e9718e3..5fd48012b 100644
 +        }
 +        __disableautocvt(temp_fd);
 +
-+        __ae_thread_swapmode(__AE_EBCDIC_MODE);
 +        int length_prefix = has_length_prefix(dsfile->recfm);
-+        __ae_thread_swapmode(__AE_ASCII_MODE);
 +        int i = 0;
 +        char* data = dsfile->buffer;
 +        if (length_prefix) {
@@ -124,7 +120,7 @@ index 58e9718e3..5fd48012b 100644
      fname_expand(curbuf, &ffname, &sfname);	// will allocate ffname
  
      /*
-@@ -2195,9 +2296,10 @@ buflist_new(
+@@ -2195,9 +2292,10 @@ buflist_new(
  
      if (ffname != NULL)
      {

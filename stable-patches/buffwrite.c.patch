@@ -1,5 +1,5 @@
 diff --git a/src/bufwrite.c b/src/bufwrite.c
-index bf79ad5bf..e18d99e64 100644
+index bf79ad5bf..a43c8353a 100644
 --- a/src/bufwrite.c
 +++ b/src/bufwrite.c
 @@ -12,6 +12,7 @@
@@ -32,75 +32,88 @@ index bf79ad5bf..e18d99e64 100644
  	    write_info.bw_fd = fd;
  
  #if defined(UNIX)
-@@ -2610,6 +2626,71 @@ nofail:
- 
- 	curbuf->b_no_eol_lnum = 0;  // in case it was set by the previous read
+@@ -2510,6 +2526,84 @@ restore_backup:
+ 	}
+     }
  
 +#ifdef __MVS__
 +  // copy from temporary file back to dataset
 +  if (curbuf->is_dataset) {
-+    __ae_thread_swapmode(__AE_EBCDIC_MODE);
 +    struct DFILE* dsfile = open_dataset(curbuf->dsname);
-+    __ae_thread_swapmode(__AE_ASCII_MODE);
-+    if (!dsfile)
-+      return NULL;
++    if (!dsfile) {
++		  errmsg = (char_u *)_("error: cannot open dataset");
++		  buffer = NULL;
++	    goto fail;
++    }
 +
 +    curbuf->dsfile = dsfile;
 +
-+    __ae_thread_swapmode(__AE_EBCDIC_MODE);
 +    int length_prefix = has_length_prefix(curbuf->dsfile->recfm);
-+    __ae_thread_swapmode(__AE_ASCII_MODE);
 +
 +    // Read temporary file into record buffer
 +    FILE* fp;
++    fprintf(stderr, "fname; %s\n", fname);
 +    if ((fp = fopen(fname, "r")) == NULL) {
-+        return -1;
++		  errmsg = (char_u *)_("error: cannot open temporary file");
++		  buffer = NULL;
++	    goto fail;
 +    }
 +
 +#define BUFFER_SIZE (1<<24) /* 16MB */
 +#define DS_MAX_REC_SIZE (32768)
 +
 +    char line[DS_MAX_REC_SIZE] = {0};
-+    char buffer[BUFFER_SIZE] = {0};
++    char dsbuffer[BUFFER_SIZE] = {0};
 +    int tot_size = 0;
-+    int reclen = 0;
++    uint16_t reclen = 0;
 +
++    int linenum = 0;
 +    while (fgets(line, sizeof(line), fp)) {
++       linenum++;
 +       reclen = strlen(line) - 1; // ignore newline;
-+       reclen = reclen > curbuf->dsfile->reclen ? curbuf->dsfile->reclen : reclen;
++       if (reclen > curbuf->dsfile->reclen) {
++         errmsg_allocated = TRUE;
++         errmsg = alloc(300);
++         vim_snprintf((char *)errmsg, 300, "Line %d exceeded record length of %d", linenum, curbuf->dsfile->reclen);
++         goto fail;
++       }
++       
 +       __a2e_s(line);
 +       if (length_prefix) {
-+             if ((tot_size + sizeof(uint16_t) + reclen) > sizeof(buffer)) {
-+                 fclose(fp);
-+                 return -1;
++             if ((tot_size + sizeof(uint16_t) + reclen) > sizeof(dsbuffer)) {
++                fclose(fp);
++                errmsg = (char_u *)_("error: exceeded buffer length");
++                buffer = NULL;
++                goto fail;
 +             }
-+             memcpy(&buffer[tot_size], &reclen, sizeof(uint16_t));
++             memcpy(&dsbuffer[tot_size], &reclen, sizeof(uint16_t));
 +             tot_size += sizeof(uint16_t);
-+             memcpy(&buffer[tot_size], line, reclen);
++             memcpy(&dsbuffer[tot_size], line, reclen);
 +             tot_size += reclen;
 +         } else {
-+             if ((tot_size + curbuf->dsfile->reclen) > sizeof(buffer)) {
++             if ((tot_size + curbuf->dsfile->reclen) > sizeof(dsbuffer)) {
 +                 fclose(fp);
-+                 return -1;
++                  errmsg = (char_u *)_("error: exceeded buffer length");
++                  buffer = NULL;
++                  goto fail;
 +             }
-+             memcpy(&buffer[tot_size], line, reclen);
-+             memset(&buffer[tot_size + reclen], 0x40, curbuf->dsfile->reclen - reclen);
++             memcpy(&dsbuffer[tot_size], line, reclen);
++             memset(&dsbuffer[tot_size + reclen], 0x40, curbuf->dsfile->reclen - reclen);
 +             tot_size += curbuf->dsfile->reclen;
 +         }
 +
 +     }
 +    fclose(fp);
 +
-+    curbuf->dsfile->buffer = buffer;
++    curbuf->dsfile->buffer = dsbuffer;
 +    curbuf->dsfile->bufflen = tot_size;
 +
-+    __ae_thread_swapmode(__AE_EBCDIC_MODE);
 +    int rc = write_dataset(curbuf->dsfile);
 +    close_dataset(curbuf->dsfile);
-+    __ae_thread_swapmode(__AE_ASCII_MODE);
 +}
 +#endif
 +
- 	// Apply POST autocommands.
- 	// Careful: The autocommands may call buf_write() recursively!
- 	// Only do this when a window was found for "buf".
++
+     // Remove the backup unless 'backup' option is set or there was a
+     // conversion error.
+     if (!p_bk && backup != NULL && !write_info.bw_conv_error
