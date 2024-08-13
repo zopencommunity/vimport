@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
     return 4;
   }
   printf("Dataset attributes for dataset %s: dsorg:%s recfm:%s lrecl:%d ccsid:%s\n",
-    relds, dsorgs(dfile->dsorg), recfms(dfile->recfm), dfile->reclen, dccsids(dfile->dccsid, ccsidstr));
+    dfile->dataset_name, dsorgs(dfile->dsorg), recfms(dfile->recfm), dfile->reclen, dccsids(dfile->dccsid, ccsidstr));
 
   rc = read_dataset(dfile);
   if (rc) {

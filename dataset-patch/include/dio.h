@@ -24,7 +24,7 @@
   #define DCCSID_NOTSET (0)
 
   struct DFILE {
-    const char* dataset_name; 
+    char* dataset_name; 
     char* buffer; 
     size_t bufflen; 
     uint16_t reclen;
@@ -123,5 +123,10 @@
    * has_length_prefix: returns 1 if the record format requires length prefixes,
    *                    0 otherwise.
    */
- int has_length_prefix(enum DRECFM recfm);
+  int has_length_prefix(enum DRECFM recfm);
+
+  /*
+   * low level qualifier: return low level qualifier of the dataset
+   */
+  const char* low_level_qualifier(struct DFILE* dfile);
 #endif
