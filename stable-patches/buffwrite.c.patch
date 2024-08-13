@@ -1,8 +1,16 @@
 diff --git a/src/bufwrite.c b/src/bufwrite.c
-index bf79ad5bf..54b4ada47 100644
+index bf79ad5bf..e18d99e64 100644
 --- a/src/bufwrite.c
 +++ b/src/bufwrite.c
-@@ -1898,6 +1898,20 @@ restore_backup:
+@@ -12,6 +12,7 @@
+  */
+ 
+ #include "vim.h"
++#include <_Nascii.h>
+ 
+ #if defined(HAVE_UTIME) && defined(HAVE_UTIME_H)
+ # include <utime.h>		// for struct utimbuf
+@@ -1898,6 +1899,21 @@ restore_backup:
  		    vim_free(wfname);
  		goto fail;
  	    }
@@ -15,6 +23,7 @@ index bf79ad5bf..54b4ada47 100644
 +        struct f_cnvrt cvtreq = {SETCVTON, 0, 1047};
 +        if (curbuf->needs_conversion)
 +          fcntl(fd, F_CONTROL_CVT, &cvtreq);
++        __setfdccsid(fd, 0);
 +      }
 +      else
 +        __chgfdccsid(fd, st_old.st_tag.ft_ccsid);
@@ -23,46 +32,72 @@ index bf79ad5bf..54b4ada47 100644
  	    write_info.bw_fd = fd;
  
  #if defined(UNIX)
-@@ -2610,6 +2624,45 @@ nofail:
+@@ -2610,6 +2626,71 @@ nofail:
  
  	curbuf->b_no_eol_lnum = 0;  // in case it was set by the previous read
  
 +#ifdef __MVS__
-+  //TODO: turn this into a function
++  // copy from temporary file back to dataset
 +  if (curbuf->is_dataset) {
-+    int fd;
-+    if ((fd = open(fname, O_RDONLY)) == -1) {
-+        return -1;
-+    }
-+    __disableautocvt(fd);
++    __ae_thread_swapmode(__AE_EBCDIC_MODE);
++    struct DFILE* dsfile = open_dataset(curbuf->dsname);
++    __ae_thread_swapmode(__AE_ASCII_MODE);
++    if (!dsfile)
++      return NULL;
 +
-+    //TODO: make it loop
-+    char buffer[1024 * 1024];
-+    ssize_t bytesread = read(fd, buffer, sizeof(buffer) - 1);
++    curbuf->dsfile = dsfile;
 +
-+    if (bytesread == -1) {
-+        close(fd);
-+        return -1;
-+    }
++    __ae_thread_swapmode(__AE_EBCDIC_MODE);
++    int length_prefix = has_length_prefix(curbuf->dsfile->recfm);
++    __ae_thread_swapmode(__AE_ASCII_MODE);
 +
-+    buffer[bytesread] = '\0';
-+
-+    close(fd);
-+
-+    // Write back to the dataset
++    // Read temporary file into record buffer
 +    FILE* fp;
-+    if (NULL == (fp = fopen(curbuf->dsfile->dataset_name, "w"))) {
-+        return -1;
-+    }
-+    __disableautocvt(fileno(fp));
-+
-+    // Write the contents of the buffer into the dataset
-+    if (fwrite(buffer, sizeof(char), bytesread, fp) != bytesread) {
-+        fclose(fp);
++    if ((fp = fopen(fname, "r")) == NULL) {
 +        return -1;
 +    }
 +
++#define BUFFER_SIZE (1<<24) /* 16MB */
++#define DS_MAX_REC_SIZE (32768)
++
++    char line[DS_MAX_REC_SIZE] = {0};
++    char buffer[BUFFER_SIZE] = {0};
++    int tot_size = 0;
++    int reclen = 0;
++
++    while (fgets(line, sizeof(line), fp)) {
++       reclen = strlen(line) - 1; // ignore newline;
++       reclen = reclen > curbuf->dsfile->reclen ? curbuf->dsfile->reclen : reclen;
++       __a2e_s(line);
++       if (length_prefix) {
++             if ((tot_size + sizeof(uint16_t) + reclen) > sizeof(buffer)) {
++                 fclose(fp);
++                 return -1;
++             }
++             memcpy(&buffer[tot_size], &reclen, sizeof(uint16_t));
++             tot_size += sizeof(uint16_t);
++             memcpy(&buffer[tot_size], line, reclen);
++             tot_size += reclen;
++         } else {
++             if ((tot_size + curbuf->dsfile->reclen) > sizeof(buffer)) {
++                 fclose(fp);
++                 return -1;
++             }
++             memcpy(&buffer[tot_size], line, reclen);
++             memset(&buffer[tot_size + reclen], 0x40, curbuf->dsfile->reclen - reclen);
++             tot_size += curbuf->dsfile->reclen;
++         }
++
++     }
 +    fclose(fp);
++
++    curbuf->dsfile->buffer = buffer;
++    curbuf->dsfile->bufflen = tot_size;
++
++    __ae_thread_swapmode(__AE_EBCDIC_MODE);
++    int rc = write_dataset(curbuf->dsfile);
++    close_dataset(curbuf->dsfile);
++    __ae_thread_swapmode(__AE_ASCII_MODE);
 +}
 +#endif
 +
