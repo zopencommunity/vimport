@@ -5,7 +5,6 @@
   #define DS_MAX (44)
   #define MEM_MAX (8)
 
-
   enum DSTATE {
     D_CLOSED=1,
     D_READ_BINARY=2,
@@ -22,4 +21,6 @@
     size_t read_buffer_size;
     size_t cur_read_offset;
   };
+
+  void errmsg(struct DFILE* dfile, const char* format, ...);
 #endif

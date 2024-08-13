@@ -67,9 +67,13 @@ int main(int argc, char* argv[]) {
   }
   sprintf(ds, "//'%s.%s'", hlq, relds);
 
-  dfile = open_dataset(ds);
-  if (!dfile) {
-    perror("open failed for read");
+  dfile = open_dataset(ds, stderr);
+  if (!dfile || dfile->err) {
+    if (dfile) {
+      fprintf(stderr, "Error message: %d %s", dfile->err, dfile->msgbuff);
+    } else {
+      fprintf(stderr, "NULL pointer returned from open_dataset\n");
+    }
     return 4;
   }
   printf("Dataset attributes for dataset %s: dsorg:%s recfm:%s lrecl:%d ccsid:%s\n",
@@ -80,14 +84,13 @@ int main(int argc, char* argv[]) {
   dfile->bufflen = calc_size(data, length_prefix, dfile->reclen);
   dfile->buffer = malloc(dfile->bufflen);
   if (!dfile->buffer) {
-    perror("unable to acquire storage");
     return 4;
   }
 
   copy_data(dfile->buffer, data, length_prefix, dfile->reclen);
   rc = write_dataset(dfile);
   if (rc) {
-    perror("write of dataset failed");
+    fprintf(stderr, dfile->msgbuff);
     return 4;
   }
 
@@ -95,7 +98,7 @@ int main(int argc, char* argv[]) {
 
   rc = close_dataset(dfile);
   if (rc) {
-    perror("close of dataset failed");
+    fprintf(stderr, dfile->msgbuff);
     return 4;
   }
   return 0;

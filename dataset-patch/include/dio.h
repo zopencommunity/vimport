@@ -4,6 +4,8 @@
   #include <stddef.h>
   #include <stdint.h>
   #include <limits.h>
+  #include <stdio.h>
+
   enum DRECFM { 
     D_V=1, 
     D_F=2, 
@@ -23,14 +25,48 @@
   #define DCCSID_BINARY (-1)
   #define DCCSID_NOTSET (0)
 
+  /*
+   * Error message return code and last error message 
+   */
+  enum DIOERR {
+    DIOERR_NOERROR=0,
+    DIOERR_SVC99INIT_FAILURE=1,
+    DIOERR_SVC99INIT_ALLOC_FAILURE=2,
+    DIOERR_SVC99INIT_FREE_FAILURE=3,
+    DIOERR_SVC99_ALLOC_FAILURE=4,
+    DIOERR_INVALID_DATASET_NAME=5,
+    DIOERR_LE_DATASET_NAME_TOO_LONG_OR_TOO_SHORT=6,
+    DIOERR_INVALID_LE_DATASET_NAME=7,
+    DIOERR_LE_DATASET_NAME_QUOTE_MISMATCH=8,
+    DIOERR_RELATIVE_DATASET_NAME_NOT_IMPLEMENTED_YET=9,
+    DIOERR_MEMBER_NAME_TOO_LONG=10,
+    DIOERR_LE_DATASET_NAME_PAREN_MISMATCH=11,
+    DIOERR_FCLOSE_FAILED_ON_READ=12,
+    DIOERR_OPENDD_FOR_READ_FAILED=13,
+    DIOERR_READ_BUFFER_ALLOC_FAILED=14,
+    DIOERR_LARGE_READ_BUFFER_NOT_IMPLEMENTED_YET=15,
+    DIOERR_INVALID_BUFFER_PASSED_TO_WRITE=16,
+    DIOERR_FCLOSE_FAILED_ON_WRITE=17,
+    DIOERR_OPENDD_FOR_WRITE_FAILED=18,
+    DIOERR_FCLOSE_FAILED_ON_CLOSE=19,
+    DIOERR_MALLOC_FAILED=20,
+    DIOERR_FLDATA_FAILED=21,
+    DIOERR_UNSUPPORTED_RECFM=22,
+    DIOERR_UNSUPPORTED_DSORG=23,
+    DIOERR_FORCE_INT=INT_MAX
+  };
+
   struct DFILE {
-    char* dataset_name; 
     char* buffer; 
     size_t bufflen; 
     uint16_t reclen;
     enum DRECFM recfm;
     enum DSORG dsorg;
     int dccsid;
+    enum DIOERR err;
+    char* msgbuff;
+    size_t msgbufflen;
+    FILE* logstream;
     void* internal;
   };
 
@@ -40,12 +76,16 @@
    * or:
    *  //qual[.qual]*[(mem)]
    *
+   * and a stream to log errors to (logstream).
+   * If no logging is required, logstream should be NULL.
    * return a DFILE structure. 
    * DFILE can be subsequently passed to the
    * read_dataset, write_dataset, close_dataset
    * services. 
    * Returns 0 if successful, non-zero otherwise
-   * Will set errno if an I/O error occurred
+   * Will set errno if an I/O error occurred 
+   * Will update msgbuff with error text for the failure
+   * Detailed error messages will be written to logstream
    *
    * On successful return from open_dataset:
    * - dataset_name : will be the name of the dataset specified
@@ -57,9 +97,10 @@
    *   will be 0.
    * - recfm : will be the record format of the dataset
    * - dsorg : will be the dataset organization of the dataset
+   * - logstream : stream to write detailed errors to
    * 
    */
-  struct DFILE* open_dataset(const char* dataset_name);
+  struct DFILE* open_dataset(const char* dataset_name, FILE* logstream);
 
   /*
    * read_dataset: read a dataset or dataset member into a buffer.
@@ -68,13 +109,15 @@
    * in binary or text (as specified by the is_binary flag).
    * Returns 0 if successful, non-zero otherwise.
    * Will set errno if an I/O error occurred
+   * Will update msgbuff with error text for the failure
+   * Detailed error messages will be written to logstream
    * If the return code is 0, the DFILE structure will update the following fields:
    * - buffer will point to a buffer containing the contents of the entire dataset 
    *   (or dataset member). Variable length records will have the length encoded
    *   in each record. No extra data such as newlines are added to the buffer.
    * - bufflen will be the length of the buffer.
    */
-  int read_dataset(struct DFILE* dfile);
+  enum DIOERR read_dataset(struct DFILE* dfile);
 
   /*
    * write_dataset: write a buffer to a dataset or dataset member.
@@ -84,6 +127,8 @@
    * in binary or text mode as specified by the is_binary flag.
    * Returns 0 if successful, non-zero otherwise.
    * Will set errno if an I/O error occurred
+   * Will update msgbuff with error text for the failure
+   * Detailed error messages will be written to logstream
    * On entry to write_dataset:
    * - buffer will point to a buffer containing the contents of the entire dataset 
    *   (or dataset member) to be written. Variable length records will have the length encoded
@@ -91,16 +136,18 @@
    * - bufflen will be the length of the buffer.
    * Records must not be longer than the logical record length of the dataset. 
    */
-  int write_dataset(struct DFILE* dfile); 
+  enum DIOERR write_dataset(struct DFILE* dfile); 
 
   /*
    * close_dataset: close the dataset and free the DFILE structure.
    * NOTE: The buffer is NOT freed by close_dataset. 
    * The caller should free the buffer when appropriate.
    * Returns 0 if successful, non-zero otherwise.
+   * Will update msgbuff with error text for the failure
+   * Detailed error messages will be written to logstream
    * Will set errno if an I/O error occurred
    */ 
-  int close_dataset(struct DFILE* dfile);
+  enum DIOERR close_dataset(struct DFILE* dfile);
 
   /*
    * dsorgs: return a string representing the dataset organization
@@ -129,4 +176,6 @@
    * low level qualifier: return low level qualifier of the dataset
    */
   const char* low_level_qualifier(struct DFILE* dfile);
+
+    
 #endif
