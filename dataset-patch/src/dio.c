@@ -506,6 +506,7 @@ int write_dataset(struct DFILE* dfile)
 int close_dataset(struct DFILE* dfile)
 {
   int rc = 0;
+  struct DIFILE* difile = (struct DIFILE*) dfile->internal;
 
   rc = fclose(difile->fp);
 

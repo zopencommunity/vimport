@@ -1,21 +1,31 @@
 diff --git a/src/fileio.c b/src/fileio.c
-index 07e05fc80..7ddabfede 100644
+index 07e05fc80..5158d527a 100644
 --- a/src/fileio.c
 +++ b/src/fileio.c
-@@ -485,6 +485,16 @@ readfile(
+@@ -485,6 +485,9 @@ readfile(
  				mch_access((char *)fname, W_OK))
  	    file_readonly = TRUE;
  	fd = mch_open((char *)fname, O_RDONLY | O_EXTRA, 0);
 +#ifdef __MVS__
 +  curbuf->needs_conversion = __file_needs_conversion(fd);
-+  if (curbuf->is_dataset) {
-+    curbuf->b_p_tw = curbuf->dsfile->reclen+1;
-+	char cmd[256];
-+	snprintf(cmd, sizeof(cmd), "setlocal colorcolumn=%d", curbuf->dsfile->reclen+1);
-+	do_cmdline_cmd((char_u *)cmd);
-+	do_cmdline_cmd((char_u *)"setlocal nowrap");
-+  }
 +#endif
  #else
  	if (!newfile
  		|| readonlymode
+@@ -2717,6 +2720,16 @@ failed:
+ 
+     if (!(recoverymode && error))
+ 	retval = OK;
++#ifdef __MVS__
++  if (curbuf->is_dataset) {
++    char cmd[256];
++    curbuf->b_p_tw = curbuf->dsfile->reclen+1;
++    snprintf(cmd, sizeof(cmd), "setlocal colorcolumn=%d", curbuf->b_p_tw);
++    do_cmdline_cmd((char_u *)cmd);
++    do_cmdline_cmd((char_u *)"setlocal nowrap");
++    check_colorcolumn(curwin);
++  }
++#endif
+ 
+ theend:
+     if (curbuf->b_ml.ml_mfp != NULL
