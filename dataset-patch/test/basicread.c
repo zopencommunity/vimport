@@ -20,13 +20,13 @@ int main(int argc, char* argv[]) {
   }
   sprintf(ds, "//'%s.%s'", hlq, relds);
 
-  dfile = open_dataset(ds);
-  if (!dfile) {
+  dfile = open_dataset(ds, stderr);
+  if (!dfile || dfile->err) {
     perror("open failed for read");
     return 4;
   }
   printf("Dataset attributes for dataset %s: dsorg:%s recfm:%s lrecl:%d ccsid:%s\n",
-    dfile->dataset_name, dsorgs(dfile->dsorg), recfms(dfile->recfm), dfile->reclen, dccsids(dfile->dccsid, ccsidstr));
+    relds, dsorgs(dfile->dsorg), recfms(dfile->recfm), dfile->reclen, dccsids(dfile->dccsid, ccsidstr));
 
   rc = read_dataset(dfile);
   if (rc) {
