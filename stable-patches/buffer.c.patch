@@ -1,5 +1,5 @@
 diff --git a/src/buffer.c b/src/buffer.c
-index 58e9718e3..d37bcca46 100644
+index 58e9718e3..5fd48012b 100644
 --- a/src/buffer.c
 +++ b/src/buffer.c
 @@ -26,6 +26,7 @@
@@ -32,7 +32,7 @@ index 58e9718e3..d37bcca46 100644
  /*
   * Return the highest possible buffer number.
   */
-@@ -2101,6 +2117,56 @@ buflist_new(
+@@ -2101,6 +2117,91 @@ buflist_new(
      if (top_file_num == 1)
  	hash_init(&buf_hashtab);
  
@@ -56,10 +56,12 @@ index 58e9718e3..d37bcca46 100644
 +        }
 +        __ae_thread_swapmode(__AE_ASCII_MODE);
 +
++        curbuf->dsname = strdup(ffname);
 +        curbuf->dsfile = dsfile;
 +        curbuf->is_dataset = 1; // Maybe we can just check dsfile != NULL?
 +
-+        // Create a temporary file to represent the dataset
++        // Create a temporary file to represent the dataset 
++        // TODO add LLQ as suffix
 +        ffname = vim_tempname('z', TRUE);
 +        sfname = ffname;
 +        
@@ -72,16 +74,49 @@ index 58e9718e3..d37bcca46 100644
 +        }
 +        __disableautocvt(temp_fd);
 +
-+        if (write(temp_fd, dsfile->buffer, dsfile->bufflen) != dsfile->bufflen) {
-+          close_dataset(dsfile);
-+          close(temp_fd);
-+          return NULL;
++        __ae_thread_swapmode(__AE_EBCDIC_MODE);
++        int length_prefix = has_length_prefix(dsfile->recfm);
++        __ae_thread_swapmode(__AE_ASCII_MODE);
++        int i = 0;
++        char* data = dsfile->buffer;
++        if (length_prefix) {
++          uint16_t reclen;
++          while (i < dsfile->bufflen) {
++            memcpy(&reclen, &data[i], sizeof(reclen));
++            i += sizeof(reclen);
++            if (write(temp_fd, &data[i], reclen) != reclen) {
++              close_dataset(dsfile);
++              close(temp_fd);
++              return NULL;
++            }
++            if (write(temp_fd, "\x15", 1) != 1) {
++              close_dataset(dsfile);
++              close(temp_fd);
++              return NULL;
++            }
++            i += reclen;
++          }
++        } else {
++          while (i < dsfile->bufflen) {
++            if (write(temp_fd, &data[i], dsfile->reclen) != dsfile->reclen) {
++              close_dataset(dsfile);
++              close(temp_fd);
++              return NULL;
++            }
++            if (write(temp_fd, "\x15", 1) != 1) {
++              close_dataset(dsfile);
++              close(temp_fd);
++              return NULL;
++            }
++            i = i + dsfile->reclen;
++          }
 +        }
 +
-+        //TODO: Use the locale's codepage
-+        __chgfdccsid(temp_fd, 1047);
 +
++        // Set to untagged? Rely on the zoslib heuristic for text
++        __chgfdccsid(temp_fd, 0);
 +        close_dataset(dsfile);
++
 +        close(temp_fd);
 +      } 
 +    } 
@@ -89,7 +124,7 @@ index 58e9718e3..d37bcca46 100644
      fname_expand(curbuf, &ffname, &sfname);	// will allocate ffname
  
      /*
-@@ -2195,9 +2261,10 @@ buflist_new(
+@@ -2195,9 +2296,10 @@ buflist_new(
  
      if (ffname != NULL)
      {
