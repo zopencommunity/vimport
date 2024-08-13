@@ -239,6 +239,8 @@ struct DFILE* open_dataset(const char* dataset_name)
   if (!dfile) {
     return NULL;
   }
+  dfile->dataset_name = strdup(dataset_name);
+
   struct DIFILE* difile = calloc(1, sizeof(struct DIFILE));
   if (!difile) {
     free(dfile);
@@ -513,4 +515,18 @@ int close_dataset(struct DFILE* dfile)
   free(dfile);
 
   return rc;
+}
+
+const char* low_level_qualifier(struct DFILE* dfile)
+{
+  struct DIFILE* difile = (struct DIFILE*) dfile->internal;
+
+  const char* last_dot = strrchr(difile->dataset_name, '.');
+
+  // Can this occur?
+  if (last_dot == NULL) {
+    return difile->dataset_name;
+  }
+
+  return last_dot + 1;
 }
