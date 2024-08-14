@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
 
   if (strlen(hlq) > 8 || strlen(ds) > 45) {
     fprintf(stderr, "HLQ and/or relative dataset name too long: %s %s\n", hlq, ds);
-    return 16;
+    return 70;
   }
   sprintf(ds, "//'%s.%s'", hlq, relds);
 
@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
     } else {
       fprintf(stderr, "NULL pointer returned from open_dataset\n");
     }
-    return 4;
+    return dfile->err;
   }
   printf("Dataset attributes for dataset %s: dsorg:%s recfm:%s lrecl:%d ccsid:%s\n",
     relds, dsorgs(dfile->dsorg), recfms(dfile->recfm), dfile->reclen, dccsids(dfile->dccsid, ccsidstr));
@@ -84,14 +84,15 @@ int main(int argc, char* argv[]) {
   dfile->bufflen = calc_size(data, length_prefix, dfile->reclen);
   dfile->buffer = malloc(dfile->bufflen);
   if (!dfile->buffer) {
-    return 4;
+    printf("Failed to allocate buffer for bufflen %d\n", dfile->bufflen);
+    return 73;
   }
 
   copy_data(dfile->buffer, data, length_prefix, dfile->reclen);
   rc = write_dataset(dfile);
   if (rc) {
     fprintf(stderr, dfile->msgbuff);
-    return 4;
+    return rc;
   }
 
   printf("Wrote %d bytes to dataset %s\n", dfile->bufflen, relds);
@@ -99,7 +100,7 @@ int main(int argc, char* argv[]) {
   rc = close_dataset(dfile);
   if (rc) {
     fprintf(stderr, dfile->msgbuff);
-    return 4;
+    return rc;
   }
   return 0;
 }

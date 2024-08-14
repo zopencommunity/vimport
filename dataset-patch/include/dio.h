@@ -53,6 +53,9 @@
     DIOERR_FLDATA_FAILED=21,
     DIOERR_UNSUPPORTED_RECFM=22,
     DIOERR_UNSUPPORTED_DSORG=23,
+    DIOERR_FOPEN_FOR_READ_FAILED=24,
+    DIOERR_FREAD_FAILED=25,
+    DIOERR_FWRITE_FAILED=26,
     DIOERR_FORCE_INT=INT_MAX
   };
 
@@ -66,6 +69,7 @@
     enum DIOERR err;
     char* msgbuff;
     size_t msgbufflen;
+    int readonly:1; 
     FILE* logstream;
     void* internal;
   };
@@ -97,6 +101,7 @@
    *   will be 0.
    * - recfm : will be the record format of the dataset
    * - dsorg : will be the dataset organization of the dataset
+   * - readonly: will be set to 1 if the dataset or dataset member can only be opened read-only
    * - logstream : stream to write detailed errors to
    * 
    */

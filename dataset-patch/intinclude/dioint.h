@@ -8,7 +8,8 @@
   enum DSTATE {
     D_CLOSED=1,
     D_READ_BINARY=2,
-    D_WRITE_BINARY=3
+    D_WRITE_BINARY=3,
+    D_READWRITE_BINARY=4
   };
 
   struct DIFILE {
