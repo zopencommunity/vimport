@@ -24,5 +24,8 @@ export CPPFLAGS="-DAMODE=${MODE} -D_ALL_SOURCE=1"
 export LD=xlc
 export LDFLAGS="-Wc,${DATA_MODEL}"
 
-(cd src && gmake)
-(cd test && gmake)
+ME=$PWD
+cd $ME/src 
+gmake
+cd $ME/test 
+gmake

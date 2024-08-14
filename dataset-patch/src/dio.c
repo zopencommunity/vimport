@@ -8,7 +8,7 @@
 #include "dioint.h"
 #include "wrappers.h"
 
-/*#define DEBUG 1*/
+#define DEBUG 1
 #define DD_SYSTEM "????????"
 #define ERRNO_NONEXISTANT_FILE (67)
 #define DIO_MSG_BUFF_LEN (4095)
@@ -219,6 +219,7 @@ static const char* dstates(enum DSTATE dstate)
   switch(dstate) {
     case D_CLOSED: return "closed";
     case D_READ_BINARY: return "rb";
+    case D_READWRITE_BINARY: return "rb+";
     case D_WRITE_BINARY: return "wb";
   }
   return "UNK";
@@ -308,9 +309,9 @@ struct DFILE* open_dataset(const char* dataset_name, FILE* logstream)
    * but this is 'good enough' for now since the C I/O services don't let us do better 
    */
 
-  difile->fp = opendd(dfile, difile, "rb,type=record");
+  difile->fp = opendd(dfile, difile, "rb+,type=record");
   if (difile->fp) {
-    difile->dstate = D_READ_BINARY;
+    difile->dstate = D_READWRITE_BINARY;
   } else {
     if ((errno == ERRNO_NONEXISTANT_FILE) && has_member(difile)) {
       /*
@@ -328,7 +329,18 @@ struct DFILE* open_dataset(const char* dataset_name, FILE* logstream)
       }
       difile->dstate = D_WRITE_BINARY;
     } else {
-      return dfile;
+      /*
+       * Try to open 'rb' (perhaps file is write protected)
+       */
+      difile->fp = opendd(dfile, difile, "rb,type=record");
+      if (difile->fp) {
+        dfile->readonly = 1;
+        difile->dstate = D_READ_BINARY;
+      } else {
+        errmsg(dfile, "Unable to obtain dataset %s for READ\n", dataset_name);
+        dfile->err = DIOERR_FOPEN_FOR_READ_FAILED;
+        return dfile;
+      }
     }
   }
 
@@ -420,12 +432,17 @@ static enum DIOERR read_dataset_internal(struct DFILE* dfile)
     difile->dstate = D_CLOSED;
   }
 
+  if (difile->dstate == D_READWRITE_BINARY) {
+    rewind(difile->fp);
+  }
+
   if (difile->dstate == D_CLOSED) {
-    difile->fp = opendd(dfile, difile, "rb,type=record");
+    difile->fp = opendd(dfile, difile, "rb+,type=record");
     if (!difile->fp) {
       return DIOERR_OPENDD_FOR_READ_FAILED;
     }
   }
+  difile->dstate = D_READWRITE_BINARY;
 
   if ((difile->read_buffer_size == 0) || (dfile->buffer == NULL)) {
     difile->read_buffer_size = INIT_READ_BUFFER_SIZE;
@@ -443,8 +460,13 @@ static enum DIOERR read_dataset_internal(struct DFILE* dfile)
   size_t count = dfile->reclen;
   size_t bytes_to_copy;
   uint16_t reclen;
+  errno = 0;
   while (1) {
     rc = fread(record, size, count, difile->fp);
+    if (errno) {
+      errmsg(dfile, strerror(errno));
+      return DIOERR_FREAD_FAILED;
+    }
     if (feof(difile->fp)) {
       break;
     }
@@ -500,18 +522,24 @@ static enum DIOERR write_dataset_internal(struct DFILE* dfile)
     difile->dstate = D_CLOSED;
   }
 
+  if (difile->dstate == D_READWRITE_BINARY) {
+    rewind(difile->fp);
+  }
+
   if (difile->dstate == D_CLOSED) {
-    difile->fp = opendd(dfile, difile, "wb,type=record");
+    difile->fp = opendd(dfile, difile, "wb+,type=record");
     if (!difile->fp) {
       return DIOERR_OPENDD_FOR_WRITE_FAILED;
     }
   }
+  difile->dstate = D_WRITE_BINARY;
 
   int length_prefix = has_length_prefix(dfile->recfm);
 
   size_t size = 1;
   size_t buffer_offset = 0;
 
+  int err=0;
   if (length_prefix) {
     uint16_t reclen;
     while (buffer_offset < dfile->bufflen) {
@@ -522,6 +550,7 @@ static enum DIOERR write_dataset_internal(struct DFILE* dfile)
        * If we didn't write out a full record, something went wrong (e.g. dataset full)
        */
       if (rc < reclen) {
+        err = 1;
         break;
       }
       buffer_offset += rc;
@@ -533,13 +562,19 @@ static enum DIOERR write_dataset_internal(struct DFILE* dfile)
        * If we didn't write out a full record, something went wrong (e.g. dataset full)
        */
       if (rc < dfile->reclen) {
+        err = 1;
         break;
       }
       buffer_offset += rc;
     }
   }
 
-  return DIOERR_NOERROR;
+  if (err) {
+    errmsg(dfile, strerror(errno));
+    return DIOERR_FWRITE_FAILED;
+  } else {
+    return DIOERR_NOERROR;
+  }
 }
 
 enum DIOERR write_dataset(struct DFILE* dfile)
@@ -554,7 +589,6 @@ static enum DIOERR close_dataset_internal(struct DFILE* dfile)
   int rc = 0;
   struct DIFILE* difile = (struct DIFILE*) dfile->internal;
 
-  struct DIFILE* difile = (struct DIFILE*) dfile->internal;
   rc = fclose(difile->fp);
   if (rc) {
     errmsg(dfile, strerror(errno));
