@@ -198,5 +198,30 @@
   #define LLQ_MAX (9)
   const char* low_level_qualifier(struct DFILE* dfile, char* buff);
 
+  
+  /*
+   * is_dataset: return if a filename is a daset or not
+   */
+  static int is_dataset(const char *filename) {
+    if (filename == NULL || strlen(filename) < 2) {
+      return 0;
+    }
+
+    if (filename[0] == '/' && filename[1] == '/') {
+      return 1;
+    }
+
+    return 0;
+  }
+
+  #define MEM_MAX (9)
+  const char* member_name(struct DFILE* dfile, char* member_copy);
+
+  const char* high_level_qualifier(struct DFILE* dfile, char* hlq_copy);
+  
+  const char* high_to_mid_level_qualifier(struct DFILE* dfile, char* hmql_copy);
+
+  const char* map_to_unixfilename(struct DFILE* dfile, char* unix);
+
     
 #endif
