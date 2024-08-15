@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <_Nascii.h>
+#include <unistd.h>
 #include "dio.h"
 #include "dioint.h"
 #include "s99.h"
@@ -25,7 +27,13 @@ static void logmsg(FILE* stream, const char* format, ...)
   va_list arg_ptr;
   va_start(arg_ptr, format);
   if (stream) {
-    vfprintf(stream, format, arg_ptr);
+    char buffer[1024];
+    size_t bufflen = sizeof(buffer);
+    int rc = vsnprintf(buffer, bufflen, format, arg_ptr);
+    if (__isASCII()) {
+      __e2a_l(buffer, rc); 
+    }
+    fputs(buffer, stream);
   }
   va_end(arg_ptr);
 }
