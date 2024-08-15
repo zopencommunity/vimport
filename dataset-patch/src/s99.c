@@ -227,13 +227,13 @@ int s99_prt_msg(struct DFILE* dfile, FILE* stream, struct s99rb* __ptr32 svc99pa
     /*
      * If IEFDB476 failed, write out an error message with the codes
      */
-    errmsg(dfile, "SVC99 failed with error:%d (0x%x) info: %d (0x%x)\n",
+    errmsg(dfile, "SVC99 failed with error:%d (0x%x) info: %d (0x%x).",
       svc99parms->s99error, svc99parms->s99error, svc99parms->s99info, svc99parms->s99info);
 	} else {
     /*
      * Write out a one liner of the SVC99 failure into the error message
      */
-    errmsg(dfile, "SVC99 failure: %.*s\n", msgparms->embuf.embufl1, &msgparms->embuf.embuft1[msgparms->embuf.embufo1]);
+    errmsg(dfile, "SVC99 failure: %.*s.", msgparms->embuf.embufl1, &msgparms->embuf.embuft1[msgparms->embuf.embufo1]);
 
 		logmsg(stream, "%.*s\n", msgparms->embuf.embufl1, &msgparms->embuf.embuft1[msgparms->embuf.embufo1]);
 		logmsg(stream, "%.*s\n", msgparms->embuf.embufl2, &msgparms->embuf.embuft2[msgparms->embuf.embufo2]);
