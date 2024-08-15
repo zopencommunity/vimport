@@ -29,7 +29,7 @@ for fmt in $dsf $dsv $dsu $dsfa $dsva; do
     dtouch -r"${fmt}" -t"${dsorg}" "${ds}"
     if [ "${dsorg}" != "SEQ" ]; then
       # read the actual directory
-      ./basicread "${hlq}" "${relds}" >>${actual_output}
+      ./basicread "${hlq}" "${relds}" >>${actual_output} 2>&1
       rc=$?
       if [ $rc -gt $maxrc ]; then
         maxrc=$rc
@@ -46,17 +46,17 @@ for fmt in $dsf $dsv $dsu $dsfa $dsva; do
     # written varies whether it is length-prefixed or not.
     # Read the fullname back.
     #
-    ./basicread "${hlq}" "${fullname}" >>${actual_output}
+    ./basicread "${hlq}" "${fullname}" >>${actual_output} 2>&1
     rc=$?
     if [ $rc -gt $maxrc ]; then
       maxrc=$rc
     fi
-    ./basicwrite "${hlq}" "${fullname}" >>${actual_output}
+    ./basicwrite "${hlq}" "${fullname}" >>${actual_output} 2>&1
     rc=$?
     if [ $rc -gt $maxrc ]; then
       maxrc=$rc
     fi
-    ./basicread "${hlq}" "${fullname}" >>${actual_output}
+    ./basicread "${hlq}" "${fullname}" >>${actual_output} 2>&1
     rc=$?
     if [ $rc -gt $maxrc ]; then
       maxrc=$rc
@@ -66,5 +66,13 @@ done
 
 if [ $maxrc -gt 0 ]; then
   echo "One or more tests failed" >&2
+fi
+
+diff "${expected_output}" "${actual_output}"
+if [ $? -gt 0 ]; then
+  echo "Differences in expected and actual output. See ${expected_output} ${actual_output} for results"
+  if [[ ${maxrc} -eq 0 ]]; then
+    maxrc=4
+  fi
 fi
 exit $maxrc

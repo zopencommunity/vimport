@@ -168,7 +168,7 @@
    * dsorgs: return a string representing the dataset organization
    * Note: a buffer at least DSORG_MAX should be passed in
    */
-  #define DSORG_MAX (4)
+  #define DSORG_MAX (5)
   const char* dsorgs(enum DSORG dsorg, char* buff);
 
   /*
