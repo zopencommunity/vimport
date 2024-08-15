@@ -1,0 +1,110 @@
+Dataset attributes for dataset DIO.FB.PDS: dsorg:PDS recfm:U lrecl:256 ccsid:?
+Read 1280 bytes from dataset DIO.FB.PDS
+Dataset attributes for dataset DIO.FB.PDS(MEM): dsorg:PDS recfm:F lrecl:80 ccsid:?
+Read 0 bytes from dataset DIO.FB.PDS(MEM)
+Dataset attributes for dataset DIO.FB.PDS(MEM): dsorg:PDS recfm:F lrecl:80 ccsid:?
+Wrote 240 bytes to dataset DIO.FB.PDS(MEM)
+Dataset attributes for dataset DIO.FB.PDS(MEM): dsorg:PDS recfm:F lrecl:80 ccsid:?
+Read 240 bytes from dataset DIO.FB.PDS(MEM)
+Dataset attributes for dataset DIO.FB.LIBRARY: dsorg:PDSE recfm:U lrecl:256 ccsid:?
+Read 256 bytes from dataset DIO.FB.LIBRARY
+Dataset attributes for dataset DIO.FB.LIBRARY(MEM): dsorg:PDSE recfm:F lrecl:80 ccsid:?
+Read 0 bytes from dataset DIO.FB.LIBRARY(MEM)
+Dataset attributes for dataset DIO.FB.LIBRARY(MEM): dsorg:PDSE recfm:F lrecl:80 ccsid:?
+Wrote 240 bytes to dataset DIO.FB.LIBRARY(MEM)
+Dataset attributes for dataset DIO.FB.LIBRARY(MEM): dsorg:PDSE recfm:F lrecl:80 ccsid:?
+Read 240 bytes from dataset DIO.FB.LIBRARY(MEM)
+Dataset attributes for dataset DIO.FB.SEQ: dsorg:SEQ recfm:F lrecl:80 ccsid:?
+Read 0 bytes from dataset DIO.FB.SEQ
+Dataset attributes for dataset DIO.FB.SEQ: dsorg:SEQ recfm:F lrecl:80 ccsid:?
+Wrote 240 bytes to dataset DIO.FB.SEQ
+Dataset attributes for dataset DIO.FB.SEQ: dsorg:SEQ recfm:F lrecl:80 ccsid:?
+Read 240 bytes from dataset DIO.FB.SEQ
+Dataset attributes for dataset DIO.VB.PDS: dsorg:PDS recfm:U lrecl:256 ccsid:?
+Read 1280 bytes from dataset DIO.VB.PDS
+Dataset attributes for dataset DIO.VB.PDS(MEM): dsorg:PDS recfm:V lrecl:133 ccsid:?
+Read 0 bytes from dataset DIO.VB.PDS(MEM)
+Dataset attributes for dataset DIO.VB.PDS(MEM): dsorg:PDS recfm:V lrecl:133 ccsid:?
+Wrote 36 bytes to dataset DIO.VB.PDS(MEM)
+Dataset attributes for dataset DIO.VB.PDS(MEM): dsorg:PDS recfm:V lrecl:133 ccsid:?
+Read 36 bytes from dataset DIO.VB.PDS(MEM)
+Dataset attributes for dataset DIO.VB.LIBRARY: dsorg:PDSE recfm:U lrecl:256 ccsid:?
+Read 256 bytes from dataset DIO.VB.LIBRARY
+Dataset attributes for dataset DIO.VB.LIBRARY(MEM): dsorg:PDSE recfm:V lrecl:133 ccsid:?
+Read 0 bytes from dataset DIO.VB.LIBRARY(MEM)
+Dataset attributes for dataset DIO.VB.LIBRARY(MEM): dsorg:PDSE recfm:V lrecl:133 ccsid:?
+Wrote 36 bytes to dataset DIO.VB.LIBRARY(MEM)
+Dataset attributes for dataset DIO.VB.LIBRARY(MEM): dsorg:PDSE recfm:V lrecl:133 ccsid:?
+Read 36 bytes from dataset DIO.VB.LIBRARY(MEM)
+Dataset attributes for dataset DIO.VB.SEQ: dsorg:SEQ recfm:V lrecl:133 ccsid:?
+Read 0 bytes from dataset DIO.VB.SEQ
+Dataset attributes for dataset DIO.VB.SEQ: dsorg:SEQ recfm:V lrecl:133 ccsid:?
+Wrote 36 bytes to dataset DIO.VB.SEQ
+Dataset attributes for dataset DIO.VB.SEQ: dsorg:SEQ recfm:V lrecl:133 ccsid:?
+Read 36 bytes from dataset DIO.VB.SEQ
+Dataset attributes for dataset DIO.U.PDS: dsorg:PDS recfm:U lrecl:256 ccsid:?
+Read 1280 bytes from dataset DIO.U.PDS
+Dataset attributes for dataset DIO.U.PDS(MEM): dsorg:PDS recfm:U lrecl:6144 ccsid:?
+Read 0 bytes from dataset DIO.U.PDS(MEM)
+Dataset attributes for dataset DIO.U.PDS(MEM): dsorg:PDS recfm:U lrecl:6144 ccsid:?
+Wrote 18432 bytes to dataset DIO.U.PDS(MEM)
+Dataset attributes for dataset DIO.U.PDS(MEM): dsorg:PDS recfm:U lrecl:6144 ccsid:?
+Read 18432 bytes from dataset DIO.U.PDS(MEM)
+Dataset attributes for dataset DIO.U.LIBRARY: dsorg:PDSE recfm:U lrecl:256 ccsid:?
+Read 256 bytes from dataset DIO.U.LIBRARY
+Dataset attributes for dataset DIO.U.LIBRARY(MEM): dsorg:PDSE recfm:U lrecl:6144 ccsid:?
+Read 0 bytes from dataset DIO.U.LIBRARY(MEM)
+Dataset attributes for dataset DIO.U.LIBRARY(MEM): dsorg:PDSE recfm:U lrecl:6144 ccsid:?
+Wrote 18432 bytes to dataset DIO.U.LIBRARY(MEM)
+Dataset attributes for dataset DIO.U.LIBRARY(MEM): dsorg:PDSE recfm:U lrecl:6144 ccsid:?
+Read 18432 bytes from dataset DIO.U.LIBRARY(MEM)
+Dataset attributes for dataset DIO.U.SEQ: dsorg:SEQ recfm:U lrecl:6144 ccsid:?
+Read 0 bytes from dataset DIO.U.SEQ
+Dataset attributes for dataset DIO.U.SEQ: dsorg:SEQ recfm:U lrecl:6144 ccsid:?
+Wrote 18432 bytes to dataset DIO.U.SEQ
+Dataset attributes for dataset DIO.U.SEQ: dsorg:SEQ recfm:U lrecl:6144 ccsid:?
+Read 18432 bytes from dataset DIO.U.SEQ
+Dataset attributes for dataset DIO.FBA.PDS: dsorg:PDS recfm:U lrecl:256 ccsid:?
+Read 1280 bytes from dataset DIO.FBA.PDS
+Dataset attributes for dataset DIO.FBA.PDS(MEM): dsorg:PDS recfm:FA lrecl:133 ccsid:?
+Read 0 bytes from dataset DIO.FBA.PDS(MEM)
+Dataset attributes for dataset DIO.FBA.PDS(MEM): dsorg:PDS recfm:FA lrecl:133 ccsid:?
+Wrote 399 bytes to dataset DIO.FBA.PDS(MEM)
+Dataset attributes for dataset DIO.FBA.PDS(MEM): dsorg:PDS recfm:FA lrecl:133 ccsid:?
+Read 399 bytes from dataset DIO.FBA.PDS(MEM)
+Dataset attributes for dataset DIO.FBA.LIBRARY: dsorg:PDSE recfm:U lrecl:256 ccsid:?
+Read 256 bytes from dataset DIO.FBA.LIBRARY
+Dataset attributes for dataset DIO.FBA.LIBRARY(MEM): dsorg:PDSE recfm:FA lrecl:133 ccsid:?
+Read 0 bytes from dataset DIO.FBA.LIBRARY(MEM)
+Dataset attributes for dataset DIO.FBA.LIBRARY(MEM): dsorg:PDSE recfm:FA lrecl:133 ccsid:?
+Wrote 399 bytes to dataset DIO.FBA.LIBRARY(MEM)
+Dataset attributes for dataset DIO.FBA.LIBRARY(MEM): dsorg:PDSE recfm:FA lrecl:133 ccsid:?
+Read 399 bytes from dataset DIO.FBA.LIBRARY(MEM)
+Dataset attributes for dataset DIO.FBA.SEQ: dsorg:SEQ recfm:FA lrecl:133 ccsid:?
+Read 0 bytes from dataset DIO.FBA.SEQ
+Dataset attributes for dataset DIO.FBA.SEQ: dsorg:SEQ recfm:FA lrecl:133 ccsid:?
+Wrote 399 bytes to dataset DIO.FBA.SEQ
+Dataset attributes for dataset DIO.FBA.SEQ: dsorg:SEQ recfm:FA lrecl:133 ccsid:?
+Read 399 bytes from dataset DIO.FBA.SEQ
+Dataset attributes for dataset DIO.VBA.PDS: dsorg:PDS recfm:U lrecl:256 ccsid:?
+Read 1280 bytes from dataset DIO.VBA.PDS
+Dataset attributes for dataset DIO.VBA.PDS(MEM): dsorg:PDS recfm:VA lrecl:133 ccsid:?
+Read 0 bytes from dataset DIO.VBA.PDS(MEM)
+Dataset attributes for dataset DIO.VBA.PDS(MEM): dsorg:PDS recfm:VA lrecl:133 ccsid:?
+Wrote 36 bytes to dataset DIO.VBA.PDS(MEM)
+Dataset attributes for dataset DIO.VBA.PDS(MEM): dsorg:PDS recfm:VA lrecl:133 ccsid:?
+Read 36 bytes from dataset DIO.VBA.PDS(MEM)
+Dataset attributes for dataset DIO.VBA.LIBRARY: dsorg:PDSE recfm:U lrecl:256 ccsid:?
+Read 256 bytes from dataset DIO.VBA.LIBRARY
+Dataset attributes for dataset DIO.VBA.LIBRARY(MEM): dsorg:PDSE recfm:VA lrecl:133 ccsid:?
+Read 0 bytes from dataset DIO.VBA.LIBRARY(MEM)
+Dataset attributes for dataset DIO.VBA.LIBRARY(MEM): dsorg:PDSE recfm:VA lrecl:133 ccsid:?
+Wrote 36 bytes to dataset DIO.VBA.LIBRARY(MEM)
+Dataset attributes for dataset DIO.VBA.LIBRARY(MEM): dsorg:PDSE recfm:VA lrecl:133 ccsid:?
+Read 36 bytes from dataset DIO.VBA.LIBRARY(MEM)
+Dataset attributes for dataset DIO.VBA.SEQ: dsorg:SEQ recfm:VA lrecl:133 ccsid:?
+Read 0 bytes from dataset DIO.VBA.SEQ
+Dataset attributes for dataset DIO.VBA.SEQ: dsorg:SEQ recfm:VA lrecl:133 ccsid:?
+Wrote 36 bytes to dataset DIO.VBA.SEQ
+Dataset attributes for dataset DIO.VBA.SEQ: dsorg:SEQ recfm:VA lrecl:133 ccsid:?
+Read 36 bytes from dataset DIO.VBA.SEQ

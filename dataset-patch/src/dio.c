@@ -561,11 +561,16 @@ static enum DIOERR write_dataset_internal(struct DFILE* dfile)
   }
 
   if (difile->dstate == D_READWRITE_BINARY) {
-    rewind(difile->fp);
+    rc=fclose(difile->fp);
+    if (rc) {
+      errmsg(dfile, strerror(errno));
+      return DIOERR_FCLOSE_FAILED_ON_WRITE;
+    }
+    difile->dstate = D_CLOSED;  
   }
 
   if (difile->dstate == D_CLOSED) {
-    difile->fp = opendd(dfile, difile, "wb+,type=record");
+    difile->fp = opendd(dfile, difile, "wb,type=record");
     if (!difile->fp) {
       return DIOERR_OPENDD_FOR_WRITE_FAILED;
     }
