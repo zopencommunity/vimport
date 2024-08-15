@@ -39,7 +39,7 @@ rc2=$?
 ./basicread sys1 'nametoolong' >>"${actual_output}" 2>&1
 rc3=$?
 
-./basicread 'noqual' >>"${actual_output}" 2>&1
+./basicread 'hlq' 'llq' >>"${actual_output}" 2>&1
 rc4=$?
 
 ./basicread sys1 'the.dataset.name.is.too.long.to.process.i.would.expect' >>"${actual_output}" 2>&1

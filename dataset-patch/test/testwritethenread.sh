@@ -68,7 +68,7 @@ if [ $maxrc -gt 0 ]; then
   echo "One or more tests failed" >&2
 fi
 
-diff "${expected_output}" "${actual_output}"
+gdiff "${expected_output}" "${actual_output}"
 if [ $? -gt 0 ]; then
   echo "Differences in expected and actual output. See ${expected_output} ${actual_output} for results"
   if [[ ${maxrc} -eq 0 ]]; then

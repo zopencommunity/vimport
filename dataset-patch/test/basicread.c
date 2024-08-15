@@ -24,7 +24,9 @@ int main(int argc, char* argv[]) {
 
   dfile = open_dataset(ds, stderr);
   if (!dfile || dfile->err) {
-    perror("open failed for read");
+    if (dfile) {
+      fprintf(stderr, "%s\n", dfile->msgbuff);
+    }
     return 4;
   }
   printf("Dataset attributes for dataset %s: dsorg:%s recfm:%s lrecl:%d ccsid:%s\n",
@@ -32,7 +34,7 @@ int main(int argc, char* argv[]) {
 
   rc = read_dataset(dfile);
   if (rc) {
-    perror("read of dataset failed");
+    fprintf(stderr, "%s\n", dfile->msgbuff);
     return 4;
   }
 
@@ -40,7 +42,7 @@ int main(int argc, char* argv[]) {
 
   rc = close_dataset(dfile);
   if (rc) {
-    perror("close of dataset failed");
+    fprintf(stderr, "%s\n", dfile->msgbuff);
     return 4;
   }
   return 0;

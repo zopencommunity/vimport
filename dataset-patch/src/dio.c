@@ -43,13 +43,15 @@ static enum DIOERR dsdd_alloc(struct DFILE* dfile, struct s99_common_text_unit* 
 
   parms = s99_init(verb, s99flag1, s99flag2, &s99rbx, num_text_units, dsn, dd, disp );
   if (!parms) {
-    errmsg(dfile, "Unable to initialize SVC99 (DYNALLOC) control blocks\n");
+    errmsg(dfile, "Unable to initialize SVC99 (DYNALLOC) control blocks.");
     return DIOERR_SVC99INIT_ALLOC_FAILURE;
   }
   rc = S99(parms);
   if (rc) {
-    errmsg(dfile, "SVC99 failed. See error log for details\n");
+    errmsg(dfile, "SVC99 failed. See error log for details.");
+#ifdef DEBUG
     s99_fmt_dmp(dfile->logstream, parms);
+#endif
     s99_prt_msg(dfile, dfile->logstream, parms, rc);
     return DIOERR_SVC99_ALLOC_FAILURE;
   }
@@ -74,12 +76,14 @@ enum DIOERR ddfree(struct DFILE* dfile, struct s99_common_text_unit* dd)
 
   parms = s99_init(verb, s99flag1, s99flag2, &s99rbx, num_text_units, dd );
   if (!parms) {
-    errmsg(dfile, "Unable to initialize SVC99 (DYNFREE) control blocks\n");
+    errmsg(dfile, "Unable to initialize SVC99 (DYNFREE) control blocks.");
     return DIOERR_SVC99INIT_FREE_FAILURE;
   }
   rc = S99(parms);
   if (rc) {
+#ifdef DEBUG
     s99_fmt_dmp(dfile->logstream, parms);
+#endif
     s99_prt_msg(dfile, dfile->logstream, parms, rc);
     return DIOERR_SVC99_ALLOC_FAILURE;
   }
@@ -92,7 +96,7 @@ enum DIOERR init_dsnam_text_unit(struct DFILE* dfile, const char* dsname, struct
 {
   size_t dsname_len = (dsname == NULL) ? 0 : strlen(dsname);
   if (dsname == NULL || dsname_len == 0 || dsname_len > DS_MAX) {
-    errmsg(dfile, "Dataset Name <%.*s> is invalid\n", dsname_len, dsname);
+    errmsg(dfile, "Dataset Name <%.*s> is invalid.", dsname_len, dsname);
     return DIOERR_INVALID_DATASET_NAME;
   }
 
@@ -123,17 +127,17 @@ static enum DIOERR init_dataset_info(struct DFILE* dfile, const char* dataset_na
   const char* dataset_name_end;
 
   if ((dataset_name_len > DS_MAX+MEM_MAX+2+2+2) || (dataset_name_len < 2+2)) {
-    errmsg(dfile, "Dataset name %s is not a valid dataset name of format: //<dataset> or //'<dataset>'\n", dataset_name);
+    errmsg(dfile, "Dataset name %s is not a valid dataset name of format: //<dataset> or //'<dataset>'.", dataset_name);
     return DIOERR_LE_DATASET_NAME_TOO_LONG_OR_TOO_SHORT;
   }
 
   if (memcmp(dataset_name, "//", 2)) {
-    errmsg(dfile, "Dataset name %s does not start with // and therefore is not a valid dataset name\n", dataset_name);
+    errmsg(dfile, "Dataset name %s does not start with // and therefore is not a valid dataset name.", dataset_name);
     return DIOERR_INVALID_LE_DATASET_NAME;
   }
   if (!memcmp(dataset_name, "//'", 3)) {
     if (dataset_name[dataset_name_len-1] != '\'') {
-      errmsg(dfile, "Dataset name %s does not have balanced single quotes\n", dataset_name);
+      errmsg(dfile, "Dataset name %s does not have balanced single quotes.", dataset_name);
       return DIOERR_LE_DATASET_NAME_QUOTE_MISMATCH;
     }
     dataset_name_start = &dataset_name[3];
@@ -141,7 +145,7 @@ static enum DIOERR init_dataset_info(struct DFILE* dfile, const char* dataset_na
   } else {
     dataset_name_start = &dataset_name[2];
     dataset_name_end = &dataset_name[dataset_name_len-1];
-    errmsg(dfile, "No support (yet) for open_dataset of relative dataset %s read/write - datasets must be fully qualified\n", dataset_name);
+    errmsg(dfile, "No support (yet) for open_dataset of relative dataset %s read/write - datasets must be fully qualified.", dataset_name);
     return DIOERR_RELATIVE_DATASET_NAME_NOT_IMPLEMENTED_YET;
   }
   ds_full_len = dataset_name_end - dataset_name_start - 1;
@@ -153,7 +157,7 @@ static enum DIOERR init_dataset_info(struct DFILE* dfile, const char* dataset_na
     dslen = open_paren - dataset_name_start;
     size_t memlen = close_paren - open_paren - 1;
     if (memlen > MEM_MAX) {
-      errmsg(dfile, "Member name of %s is more than %d characters\n", dataset_name, MEM_MAX);
+      errmsg(dfile, "Member name of %s is more than %d characters.", dataset_name, MEM_MAX);
       return DIOERR_MEMBER_NAME_TOO_LONG;
     }
     /* dataset member - valid */
@@ -165,7 +169,7 @@ static enum DIOERR init_dataset_info(struct DFILE* dfile, const char* dataset_na
     difile->member_name[0] = '\0';
   } else {
     /* mis-matched parens - invalid */
-    errmsg(dfile, "Dataset %s is not a valid dataset name or dataset member name\n", dataset_name);
+    errmsg(dfile, "Dataset %s is not a valid dataset name or dataset member name.", dataset_name);
     return DIOERR_LE_DATASET_NAME_PAREN_MISMATCH;
   }
   memcpy(difile->dataset_full_name, dataset_name_start, ds_full_len);
@@ -375,7 +379,7 @@ struct DFILE* open_dataset(const char* dataset_name, FILE* logstream)
         dfile->readonly = 1;
         difile->dstate = D_READ_BINARY;
       } else {
-        errmsg(dfile, "Unable to obtain dataset %s for READ\n", dataset_name);
+        errmsg(dfile, "Unable to obtain dataset %s for READ.", dataset_name_copy);
         dfile->err = DIOERR_FOPEN_FOR_READ_FAILED;
         return dfile;
       }
@@ -385,7 +389,7 @@ struct DFILE* open_dataset(const char* dataset_name, FILE* logstream)
   fldata_t info;
   rc = __fldata(difile->fp, NULL, &info);
   if (rc) {
-    errmsg(dfile, "Unable to obtain file information for %s\n", dataset_name);
+    errmsg(dfile, "Unable to obtain file information for %s.", dataset_name_copy);
     close_dataset(dfile);
     dfile->err = DIOERR_FLDATA_FAILED;
     return dfile;
@@ -406,7 +410,7 @@ struct DFILE* open_dataset(const char* dataset_name, FILE* logstream)
   } else if (info.__recfmU) {
     dfile->recfm = D_U;
   } else {
-    errmsg(dfile, "Dataset %s is not F, V, or U format. open_dataset not supported at this time\n", dataset_name);
+    errmsg(dfile, "Dataset %s is not F, V, or U format. open_dataset not supported at this time.", dataset_name_copy);
     dfile->err = DIOERR_UNSUPPORTED_RECFM;
     return dfile;
   }
@@ -418,7 +422,7 @@ struct DFILE* open_dataset(const char* dataset_name, FILE* logstream)
   } else if (info.__dsorgPS) {
     dfile->dsorg = D_SEQ;
   } else {
-    errmsg(dfile, "Dataset %s is not PDS, PDSE, or SEQ organization. open_dataset not supported at this time\n", dataset_name);
+    errmsg(dfile, "Dataset %s is not PDS, PDSE, or SEQ organization. open_dataset not supported at this time.", dataset_name_copy);
     dfile->err = DIOERR_UNSUPPORTED_RECFM;
     return dfile;
   }
@@ -486,7 +490,7 @@ static enum DIOERR read_dataset_internal(struct DFILE* dfile)
     difile->read_buffer_size = INIT_READ_BUFFER_SIZE;
     dfile->buffer = malloc(difile->read_buffer_size);
     if (!dfile->buffer) {
-      errmsg(dfile, "Unable to acquire storage to read dataset %s\n", difile->dataset_name);
+      errmsg(dfile, "Unable to acquire storage to read dataset %s.", difile->dataset_name);
       return DIOERR_READ_BUFFER_ALLOC_FAILED;
     }
   }
@@ -513,7 +517,7 @@ static enum DIOERR read_dataset_internal(struct DFILE* dfile)
       bytes_to_copy += sizeof(uint16_t);
     }
     if (difile->cur_read_offset + bytes_to_copy > difile->read_buffer_size) {
-      errmsg(dfile, "To be implemented - need to write code to grow buffer for reading in file\n");
+      errmsg(dfile, "To be implemented - need to write code to grow buffer for reading in file.");
       return DIOERR_LARGE_READ_BUFFER_NOT_IMPLEMENTED_YET;
     }
     reclen = rc;
@@ -547,7 +551,7 @@ static enum DIOERR write_dataset_internal(struct DFILE* dfile)
   errno = 0;
 
   if ((dfile->bufflen == 0) || (dfile->buffer == NULL)) {
-    errmsg(dfile, "No buffer and/or buffer length not positive - no action performed\n");
+    errmsg(dfile, "No buffer and/or buffer length not positive - no action performed.");
     return DIOERR_INVALID_BUFFER_PASSED_TO_WRITE;
   }
 
