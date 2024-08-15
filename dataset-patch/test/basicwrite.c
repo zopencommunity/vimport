@@ -45,7 +45,6 @@ static void copy_data(char* buffer, char** data, int length_prefix, size_t maxre
 int main(int argc, char* argv[]) {
   int rc;
   struct DFILE* dfile;
-  char ccsidstr[DCCSID_MAX];
   char ds[54+1+2+2];
 
   /*
@@ -60,6 +59,9 @@ int main(int argc, char* argv[]) {
   }
   const char* hlq = argv[1];
   const char* relds = argv[2];
+  char dsorgbuff[DSORG_MAX];
+  char recfmbuff[RECFM_MAX];
+  char ccsidbuff[DCCSID_MAX];
 
   if (strlen(hlq) > 8 || strlen(ds) > 45) {
     fprintf(stderr, "HLQ and/or relative dataset name too long: %s %s\n", hlq, ds);
@@ -77,7 +79,7 @@ int main(int argc, char* argv[]) {
     return dfile->err;
   }
   printf("Dataset attributes for dataset %s: dsorg:%s recfm:%s lrecl:%d ccsid:%s\n",
-    relds, dsorgs(dfile->dsorg), recfms(dfile->recfm), dfile->reclen, dccsids(dfile->dccsid, ccsidstr));
+    relds, dsorgs(dfile->dsorg, dsorgbuff), recfms(dfile->recfm, recfmbuff), dfile->reclen, dccsids(dfile->dccsid, ccsidbuff));
 
   int length_prefix = has_length_prefix(dfile->recfm);
 

@@ -4,8 +4,10 @@
 int main(int argc, char* argv[]) {
   int rc;
   struct DFILE* dfile;
-  char ccsidstr[DCCSID_MAX];
   char ds[54+1+2+2];
+  char dsorgbuff[DSORG_MAX];
+  char recfmbuff[RECFM_MAX];
+  char ccsidbuff[DCCSID_MAX];
 
   if (argc != 3) {
     fprintf(stderr, "Syntax: argv[0] <hlq> <relative-dataset>\n");
@@ -26,7 +28,7 @@ int main(int argc, char* argv[]) {
     return 4;
   }
   printf("Dataset attributes for dataset %s: dsorg:%s recfm:%s lrecl:%d ccsid:%s\n",
-    relds, dsorgs(dfile->dsorg), recfms(dfile->recfm), dfile->reclen, dccsids(dfile->dccsid, ccsidstr));
+    relds, dsorgs(dfile->dsorg, dsorgbuff), recfms(dfile->recfm, recfmbuff), dfile->reclen, dccsids(dfile->dccsid, ccsidbuff));
 
   rc = read_dataset(dfile);
   if (rc) {
