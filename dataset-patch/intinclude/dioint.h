@@ -4,6 +4,7 @@
   #define DD_MAX (8)
   #define DS_MAX (44)
   #define MEM_MAX (8)
+  #define DS_FULL_MAX (DS_MAX+MEM_MAX+2)
 
   enum DSTATE {
     D_CLOSED=1,
@@ -13,7 +14,7 @@
   };
 
   struct DIFILE {
-    char dataset_full_name[DS_MAX+MEM_MAX+2+1];
+    char dataset_full_name[DS_FULL_MAX+1];
     char dataset_name[DS_MAX+1];
     char member_name[MEM_MAX+1];
     char ddname[DD_MAX+1];

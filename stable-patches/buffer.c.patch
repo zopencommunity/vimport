@@ -1,77 +1,125 @@
 diff --git a/src/buffer.c b/src/buffer.c
-index 58e9718e3..a77f8904e 100644
+index 58e9718e3..cfc47bd9a 100644
 --- a/src/buffer.c
 +++ b/src/buffer.c
 @@ -26,6 +26,7 @@
   */
  
  #include "vim.h"
-+#include <_Nascii.h>
++#include "dio.h"
  
  
  #ifdef FEAT_EVAL
-@@ -71,6 +72,21 @@ static int	buf_free_count = 0;
+@@ -71,6 +72,7 @@ static int	buf_free_count = 0;
  static int	top_file_num = 1;	// highest file number
  static garray_T buf_reuse = GA_EMPTY;	// file numbers to recycle
  
 +
-+#ifdef __MVS__
-+int is_dataset(const char *filename) {
-+  if (filename == NULL || strlen(filename) < 2) {
-+    return 0;
-+  }
-+
-+  if (filename[0] == '/' && filename[1] == '/') {
-+    return 1;
-+  }
-+
-+  return 0;
-+}
-+#endif
-+
  /*
   * Return the highest possible buffer number.
   */
-@@ -2101,6 +2117,87 @@ buflist_new(
+@@ -214,6 +216,11 @@ open_buffer(
+ #ifdef FEAT_SYN_HL
+ 	if (old_tw != curbuf->b_p_tw)
+ 	    check_colorcolumn(curwin);
++    char cmd[256];
++    curbuf->b_p_tw = curbuf->reclen+1;
++    snprintf(cmd, sizeof(cmd), "setlocal colorcolumn=%d", curbuf->b_p_tw);
++    do_cmdline_cmd((char_u *)cmd);
++    do_cmdline_cmd((char_u *)"setlocal nowrap");
+ #endif
+ 	return FAIL;
+     }
+@@ -1184,6 +1191,11 @@ handle_swap_exists(bufref_T *old_curbuf)
+ #ifdef FEAT_SYN_HL
+ 	    if (old_tw != curbuf->b_p_tw)
+ 		check_colorcolumn(curwin);
++    char cmd[256];
++    curbuf->b_p_tw = curbuf->reclen+1;
++    snprintf(cmd, sizeof(cmd), "setlocal colorcolumn=%d", curbuf->b_p_tw);
++    do_cmdline_cmd((char_u *)cmd);
++    do_cmdline_cmd((char_u *)"setlocal nowrap");
+ #endif
+ 	}
+ 	// If "old_curbuf" is NULL we are in big trouble here...
+@@ -1879,6 +1891,11 @@ set_curbuf(buf_T *buf, int action)
+ #ifdef FEAT_SYN_HL
+ 	if (old_tw != curbuf->b_p_tw)
+ 	    check_colorcolumn(curwin);
++    char cmd[256];
++    curbuf->b_p_tw = curbuf->reclen+1;
++    snprintf(cmd, sizeof(cmd), "setlocal colorcolumn=%d", curbuf->b_p_tw);
++    do_cmdline_cmd((char_u *)cmd);
++    do_cmdline_cmd((char_u *)"setlocal nowrap");
+ #endif
+     }
+ }
+@@ -2101,6 +2118,120 @@ buflist_new(
      if (top_file_num == 1)
  	hash_init(&buf_hashtab);
  
 +  // Dataset I/O
 +#ifdef __MVS__
++    //TODO: check for binary
 +    if (ffname != NULL)
 +    {
 +      if (is_dataset(ffname)) {
-+         
-+        __a2e_s(ffname);
-+        struct DFILE* dsfile = open_dataset(ffname);
-+        if (!dsfile)
-+          return NULL;
-+
-+        if (read_dataset(dsfile)) {
++        struct DFILE* dsfile = open_dataset(ffname, NULL);
++        if (!dsfile) {
++	        semsg(_("Could not open dataset for %s"), ffname);
 +          return NULL;
 +        }
 +
-+        curbuf->dsname = strdup(ffname);
-+        curbuf->dsfile = dsfile;
-+        curbuf->is_dataset = 1; // Maybe we can just check dsfile != NULL?
++        if (dsfile->err) {
++	        emsg(_(dsfile->msgbuff));
++          close_dataset(dsfile);
++          return NULL;
++        }
++
++        if (read_dataset(dsfile) > 0) {
++	        emsg(_(dsfile->msgbuff));
++          close_dataset(dsfile);
++          return NULL;
++        }
++
++        // Store the original dataset name
++        curbuf->dsname = vim_strsave(ffname);
++        curbuf->reclen = dsfile->reclen;
++        curbuf->is_dataset = TRUE; 
 +
 +        // Create a temporary file to represent the dataset 
-+        // TODO add member well
 +        ffname = vim_tempname('z', TRUE);
-+        char* llq = strdup(low_level_qualifier(dsfile));
-+        __e2a_s(llq);
-+	      vim_snprintf(ffname, 256, "%s.%s", ffname, llq);
-+        sfname = ffname;
++
++        // Add LLQ as suffix
++        char file_suffix[256];
++        char ffname2[PATH_MAX];
++        map_to_unixfilename(dsfile, file_suffix);
++        //high_level_qualifier(dsfile, file_suffix);
++        //TODO: add member name
++        //TODO: Add support for seq
++        //TODO: add mapping from LLQ to extension
++        snprintf(ffname2, PATH_MAX, "%s-%s", ffname, file_suffix);
++        ffname = ffname2;
++
++        // Set ffname and sfname to temporary
++        sfname = vim_strsave(ffname);
++        ffname = sfname;
++    
++        // Default perms are writeable, unless ds is readonly
++        int perms = 0666;
++        if (dsfile->readonly)
++          perms = 0444; 
 +        
++        // Create temporary file with dataset contents
 +        int temp_fd;
-+        //TODO: Copy permissions from dataset?
-+        if ((temp_fd = open(ffname, O_WRONLY | O_CREAT | O_TRUNC, 0666)) == -1) {
++        if ((temp_fd = open(ffname, O_WRONLY | O_CREAT | O_TRUNC, perms)) == -1) {
 +          close_dataset(dsfile);
 +          close(temp_fd);
 +          return NULL;
 +        }
 +        __disableautocvt(temp_fd);
 +
++        //TODO: Create as function
 +        int length_prefix = has_length_prefix(dsfile->recfm);
 +        int i = 0;
 +        char* data = dsfile->buffer;
@@ -100,6 +148,7 @@ index 58e9718e3..a77f8904e 100644
 +              return NULL;
 +            }
 +            if (write(temp_fd, "\x15", 1) != 1) {
++              free(dsfile->buffer);
 +              close_dataset(dsfile);
 +              close(temp_fd);
 +              return NULL;
@@ -108,10 +157,16 @@ index 58e9718e3..a77f8904e 100644
 +          }
 +        }
 +
++        //free(dsfile->buffer);
 +
-+        // Set to untagged? Rely on the zoslib heuristic for text
++        // Set to untagged - Rely on the zoslib heuristic for text detection
 +        __chgfdccsid(temp_fd, 0);
-+        close_dataset(dsfile);
++
++        if (close_dataset(dsfile) > 0) {
++	        emsg(_(dsfile->msgbuff));
++          close(temp_fd);
++          return NULL;
++        }
 +
 +        close(temp_fd);
 +      } 
@@ -120,7 +175,7 @@ index 58e9718e3..a77f8904e 100644
      fname_expand(curbuf, &ffname, &sfname);	// will allocate ffname
  
      /*
-@@ -2195,9 +2292,10 @@ buflist_new(
+@@ -2195,9 +2326,10 @@ buflist_new(
  
      if (ffname != NULL)
      {

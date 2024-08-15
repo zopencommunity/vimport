@@ -1,5 +1,5 @@
 diff --git a/src/bufwrite.c b/src/bufwrite.c
-index bf79ad5bf..a43c8353a 100644
+index bf79ad5bf..c070d83cc 100644
 --- a/src/bufwrite.c
 +++ b/src/bufwrite.c
 @@ -12,6 +12,7 @@
@@ -32,30 +32,34 @@ index bf79ad5bf..a43c8353a 100644
  	    write_info.bw_fd = fd;
  
  #if defined(UNIX)
-@@ -2510,6 +2526,84 @@ restore_backup:
+@@ -2510,6 +2526,98 @@ restore_backup:
  	}
      }
  
 +#ifdef __MVS__
 +  // copy from temporary file back to dataset
 +  if (curbuf->is_dataset) {
-+    struct DFILE* dsfile = open_dataset(curbuf->dsname);
++    struct DFILE* dsfile = open_dataset(curbuf->dsname, NULL);
 +    if (!dsfile) {
-+		  errmsg = (char_u *)_("error: cannot open dataset");
++		  errmsg = (char_u *)_("cannot open dataset");
 +		  buffer = NULL;
 +	    goto fail;
 +    }
 +
-+    curbuf->dsfile = dsfile;
++    if (dsfile->err) {
++      errmsg = dsfile->msgbuff;
++      close_dataset(dsfile);
++      goto fail;
++    }
 +
-+    int length_prefix = has_length_prefix(curbuf->dsfile->recfm);
++    int length_prefix = has_length_prefix(dsfile->recfm);
 +
 +    // Read temporary file into record buffer
 +    FILE* fp;
-+    fprintf(stderr, "fname; %s\n", fname);
 +    if ((fp = fopen(fname, "r")) == NULL) {
-+		  errmsg = (char_u *)_("error: cannot open temporary file");
++		  errmsg = (char_u *)_("cannot open temporary file");
 +		  buffer = NULL;
++      close_dataset(dsfile);
 +	    goto fail;
 +    }
 +
@@ -71,10 +75,11 @@ index bf79ad5bf..a43c8353a 100644
 +    while (fgets(line, sizeof(line), fp)) {
 +       linenum++;
 +       reclen = strlen(line) - 1; // ignore newline;
-+       if (reclen > curbuf->dsfile->reclen) {
++       if (reclen > curbuf->reclen) {
 +         errmsg_allocated = TRUE;
 +         errmsg = alloc(300);
-+         vim_snprintf((char *)errmsg, 300, "Line %d exceeded record length of %d", linenum, curbuf->dsfile->reclen);
++         vim_snprintf((char *)errmsg, 300, "Line %d exceeded record length of %d", linenum, curbuf->reclen);
++         close_dataset(dsfile);
 +         goto fail;
 +       }
 +       
@@ -84,6 +89,7 @@ index bf79ad5bf..a43c8353a 100644
 +                fclose(fp);
 +                errmsg = (char_u *)_("error: exceeded buffer length");
 +                buffer = NULL;
++                close_dataset(dsfile);
 +                goto fail;
 +             }
 +             memcpy(&dsbuffer[tot_size], &reclen, sizeof(uint16_t));
@@ -91,25 +97,33 @@ index bf79ad5bf..a43c8353a 100644
 +             memcpy(&dsbuffer[tot_size], line, reclen);
 +             tot_size += reclen;
 +         } else {
-+             if ((tot_size + curbuf->dsfile->reclen) > sizeof(dsbuffer)) {
++             if ((tot_size + curbuf->reclen) > sizeof(dsbuffer)) {
 +                 fclose(fp);
 +                  errmsg = (char_u *)_("error: exceeded buffer length");
 +                  buffer = NULL;
++                  close_dataset(dsfile);
 +                  goto fail;
 +             }
 +             memcpy(&dsbuffer[tot_size], line, reclen);
-+             memset(&dsbuffer[tot_size + reclen], 0x40, curbuf->dsfile->reclen - reclen);
-+             tot_size += curbuf->dsfile->reclen;
++             memset(&dsbuffer[tot_size + reclen], 0x40, curbuf->reclen - reclen);
++             tot_size += curbuf->reclen;
 +         }
 +
 +     }
 +    fclose(fp);
 +
-+    curbuf->dsfile->buffer = dsbuffer;
-+    curbuf->dsfile->bufflen = tot_size;
++    dsfile->buffer = dsbuffer;
++    dsfile->bufflen = tot_size;
 +
-+    int rc = write_dataset(curbuf->dsfile);
-+    close_dataset(curbuf->dsfile);
++    if (write_dataset(dsfile)) {
++      errmsg = dsfile->msgbuff;
++      close_dataset(dsfile);
++      goto fail;
++    }
++    if (close_dataset(dsfile)) {
++      errmsg = dsfile->msgbuff;
++      goto fail;
++    }
 +}
 +#endif
 +

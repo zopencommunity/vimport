@@ -680,3 +680,120 @@ const char* low_level_qualifier(struct DFILE* dfile, char* llq_copy)
   }
   return llq_copy;
 }
+
+const char* member_name(struct DFILE* dfile, char* member_copy)
+{
+  struct DIFILE* difile = (struct DIFILE*) dfile->internal;
+
+  if (has_member(difile)) {
+    size_t len = strlen(difile->member_name);
+    memcpy(member_copy, difile->member_name, len);
+    member_copy[len] = '\0';
+    if (__isASCII()) {
+      __e2a_l(member_copy, len);
+    }
+    return member_copy;
+  }
+  return NULL;
+}
+
+const char* high_level_qualifier(struct DFILE* dfile, char* hlq_copy) {
+  struct DIFILE* difile = (struct DIFILE*) dfile->internal;
+
+  const char* first_dot = strchr(difile->dataset_full_name, '.');
+  const char* hlq;
+
+  if (first_dot == NULL) {
+    strcpy(hlq_copy, difile->dataset_full_name); // No dot means the entire name is the HLQ
+  } else {
+    size_t hlqlen = first_dot - difile->dataset_full_name;
+    if (hlqlen > DS_FULL_MAX-1) {
+      hlqlen = DS_FULL_MAX-1;
+    }
+    memcpy(hlq_copy, difile->dataset_full_name, hlqlen);
+    hlq_copy[hlqlen] = '\0';
+    if (__isASCII()) {
+      __e2a_l(hlq_copy, hlqlen);
+    }
+  }
+  return hlq_copy;
+}
+ 
+const char* high_to_mid_level_qualifier(struct DFILE* dfile, char* hmql_copy) {
+  struct DIFILE* difile = (struct DIFILE*) dfile->internal;
+
+  const char* last_dot = strrchr(difile->dataset_full_name, '.');
+
+  if (last_dot == NULL) {
+    strcpy(hmql_copy, difile->dataset_full_name); // No dot means the entire name is the HMQL
+  } else {
+    size_t hmql_len = last_dot - difile->dataset_full_name;
+    if (hmql_len > DS_FULL_MAX-1) {
+      hmql_len = DS_FULL_MAX-1;
+    }
+    memcpy(hmql_copy, difile->dataset_full_name, hmql_len);
+    hmql_copy[hmql_len] = '\0';
+    if (__isASCII()) {
+      __e2a_l(hmql_copy, hmql_len);
+    }
+  }
+  return hmql_copy;
+}
+
+const char* llq_to_extension(struct DFILE* dfile, char* llq, char* extension) {
+  if (strcasecmp(llq, "COBOL") == 0) {
+    strcpy(extension, "cbl");
+  } else if (strcasecmp(llq, "H") == 0) {
+    strcpy(extension, "h");
+  } else if (strcasecmp(llq, "ASM") == 0) {
+    strcpy(extension, "asm");
+  } else if (strcasecmp(llq, "C") == 0) {
+    strcpy(extension, "c");
+  } else if (strcasecmp(llq, "JCL") == 0) {
+    strcpy(extension, "jcl");
+  } else if (strcasecmp(llq, "PLI") == 0) {
+    strcpy(extension, "pli");
+  } else if (strcasecmp(llq, "SRC") == 0) {
+    strcpy(extension, "c"); // is SRC usually C source?
+  } else if (strcasecmp(llq, "TXT") == 0) {
+    strcpy(extension, "txt");
+  } else {
+    strcpy(extension, "txt"); // Is this a good default?
+  }
+
+  if (__isASCII()) {
+    __e2a_l(extension, strlen(extension));
+  }
+
+  return extension;
+}
+
+const char* map_to_unixfilename(struct DFILE* dfile, char* unix) {
+  char member[256];
+  char hlq[256];
+  char llq[256];
+  char hightomid[256];
+  char extension[256];
+
+  // We we want to avoid double converting, so call the APIs in EBCDIC mode and then switch back
+  int orig = __ae_thread_swapmode(__AE_EBCDIC_MODE);
+
+  high_to_mid_level_qualifier(dfile, hightomid);
+  high_level_qualifier(dfile, hlq);
+  low_level_qualifier(dfile, llq);
+  member_name(dfile, member);
+  
+  struct DIFILE* difile = (struct DIFILE*) dfile->internal;
+  if (has_member(difile))
+    sprintf(unix, "%s.%s.%s", hightomid, member, llq_to_extension(dfile, llq, extension));
+  else
+    sprintf(unix, "%s.%s", hightomid,  llq_to_extension(dfile, llq, extension));
+
+  __ae_thread_swapmode(orig);
+
+  if (__isASCII()) {
+    __e2a_l(unix, strlen(unix));
+  }
+
+  return unix;
+}
