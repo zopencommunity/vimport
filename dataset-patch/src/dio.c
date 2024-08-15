@@ -7,8 +7,10 @@
 #include "dio.h"
 #include "dioint.h"
 #include "wrappers.h"
+#include <_Nascii.h>
+#include <unistd.h>
 
-#define DEBUG 1
+/*#define DEBUG 1*/
 #define DD_SYSTEM "????????"
 #define ERRNO_NONEXISTANT_FILE (67)
 #define DIO_MSG_BUFF_LEN (4095)
@@ -17,10 +19,16 @@ const struct s99_rbx s99rbxtemplate = {"S99RBX",S99RBXVR,{0,1,0,0,0,0,0},0,0,0};
 
 void errmsg(struct DFILE* dfile, const char* format, ...)
 {
-	va_list arg_ptr;
-	va_start(arg_ptr, format);
-	vsnprintf(dfile->msgbuff, dfile->msgbufflen, format, arg_ptr);
-	va_end(arg_ptr);
+  va_list arg_ptr;
+  va_start(arg_ptr, format);
+  vsnprintf(dfile->msgbuff, dfile->msgbufflen, format, arg_ptr);
+  if (__isASCII()) {
+    size_t msglen = strlen(dfile->msgbuff);
+    if (msglen > 0) {
+      __e2a_l(dfile->msgbuff, msglen);
+    }
+  } 
+  va_end(arg_ptr);
 }
 
 static enum DIOERR dsdd_alloc(struct DFILE* dfile, struct s99_common_text_unit* dsn, struct s99_common_text_unit* dd, struct s99_common_text_unit* disp)
@@ -176,7 +184,7 @@ static enum DIOERR init_dataset_info(struct DFILE* dfile, const char* dataset_na
   return DIOERR_NOERROR;
 }
 
-const char* dsorgs(enum DSORG dsorg)
+static const char* dsorgs_internal(enum DSORG dsorg)
 {
   switch(dsorg) {
     case D_PDS: return "PDS";
@@ -185,8 +193,18 @@ const char* dsorgs(enum DSORG dsorg)
   }
   return "UNK";
 }
+const char* dsorgs(enum DSORG dsorg, char* buff)
+{
+  const char* es = dsorgs_internal(dsorg);
+  size_t len = strlen(es);
+  memcpy(buff, es, len+1);
+  if (__isASCII()) {
+    __e2a_l(buff, len);
+  }
+  return buff;
+}
 
-const char* recfms(enum DRECFM drecfm)
+static const char* recfms_internal(enum DRECFM drecfm)
 {
   switch(drecfm) {
     case D_F: return "F";
@@ -198,20 +216,35 @@ const char* recfms(enum DRECFM drecfm)
   return "UNK";
 }
 
-const char* dccsids(int dccsid, char* buf)
+const char* recfms(enum DRECFM drecfm, char* buff)
+{
+  const char* es = recfms_internal(drecfm);
+  size_t len = strlen(es);
+  memcpy(buff, es, len+1);
+  if (__isASCII()) {
+    __e2a_l(buff, len);
+  }
+  return buff;
+}
+
+const char* dccsids(int dccsid, char* buff)
 {
   switch(dccsid) {
     case DCCSID_NOTSET:
-      strcpy(buf, "?");
+      strcpy(buff, "?");
       break;
     case DCCSID_BINARY:
-      strcpy(buf, "B");
+      strcpy(buff, "B");
       break;
     default:
-      sprintf(buf, "%u", dccsid);
+      sprintf(buff, "%u", dccsid);
       break;
   }
-  return buf;
+  size_t len = strlen(buff);
+  if (__isASCII()) {
+    __e2a_l(buff, len);
+  }
+  return buff;
 }
 
 static const char* dstates(enum DSTATE dstate)
@@ -273,7 +306,12 @@ struct DFILE* open_dataset(const char* dataset_name, FILE* logstream)
 
   dfile->internal = difile;
 
-  rc = init_dataset_info(dfile, strdup(dataset_name), difile);
+  char* dataset_name_copy = strdup(dataset_name);
+  size_t len = strlen(dataset_name_copy);
+  if (__isASCII()) {
+    __a2e_l(dataset_name_copy, len);
+  }
+  rc = init_dataset_info(dfile, dataset_name_copy, difile);
   if (rc) {
     dfile->err = rc;
     return dfile;
@@ -391,7 +429,7 @@ struct DFILE* open_dataset(const char* dataset_name, FILE* logstream)
 #ifdef DEBUG
   char ccsidstr[DCCSID_MAX];
   printf("Dataset attributes: dsorg:%s recfm:%s lrecl:%d dstate:%s ccsid:%s\n", 
-    dsorgs(dfile->dsorg), recfms(dfile->recfm), dfile->reclen, dstates(difile->dstate), dccsids(dfile->dccsid, ccsidstr));
+    dsorgs_internal(dfile->dsorg), recfms_internal(dfile->recfm), dfile->reclen, dstates(difile->dstate), dccsids(dfile->dccsid, ccsidstr));
 #endif
 
   return dfile;
@@ -605,19 +643,31 @@ enum DIOERR close_dataset(struct DFILE* dfile)
   return rc;
 }
 
-const char* low_level_qualifier(struct DFILE* dfile)
+const char* low_level_qualifier(struct DFILE* dfile, char* llq_copy)
 {
   struct DIFILE* difile = (struct DIFILE*) dfile->internal;
 
   const char* last_dot = strrchr(difile->dataset_name, '.');
+  const char* llq;
 
   /*
    * A valid dataset name always has at least one dot, so this check is
    * not required unless the call is made as the DFILE structure is being established.
    */
   if (last_dot == NULL) {
-    return difile->dataset_name;
+    llq = difile->dataset_name;
+  } else {
+    llq = last_dot + 1;
+  }
+  size_t llqlen = strlen(llq);
+  if (llqlen > LLQ_MAX-1) {
+    llqlen = LLQ_MAX-1;
   }
 
-  return last_dot + 1;
+  memcpy(llq_copy, llq, llqlen);
+  llq_copy[llqlen] = '\0';
+  if (__isASCII()) {
+    __e2a_l(llq_copy, llqlen);
+  }
+  return llq_copy;
 }

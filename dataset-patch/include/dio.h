@@ -6,6 +6,16 @@
   #include <limits.h>
   #include <stdio.h>
 
+  /*
+   * Services that take a string or return a string are ASCII/EBCDIC aware.
+   * If the program is running in ASCII mode, input strings are expected in
+   * ASCII and returned strings will be in ASCII.
+   * If the program is running in EBCDIC mode, input strings are expected in
+   * EBCDIC and returned strings will be in EBCDIC.
+   * 
+   * Note that read_dataset and write_dataset are functions that work with
+   * binary data, and therefore no conversion is performed on the buffers.
+   */
   enum DRECFM { 
     D_V=1, 
     D_F=2, 
@@ -156,20 +166,24 @@
 
   /*
    * dsorgs: return a string representing the dataset organization
+   * Note: a buffer at least DSORG_MAX should be passed in
    */
-  const char* dsorgs(enum DSORG dsorg);
+  #define DSORG_MAX (4)
+  const char* dsorgs(enum DSORG dsorg, char* buff);
 
   /*
    * recfms: return a string representing the record format
+   * Note: a buffer at least DRECFM_MAX should be passed in
    */
-  const char* recfms(enum DRECFM drecfm);
+  #define RECFM_MAX (3)
+  const char* recfms(enum DRECFM drecfm, char* buff);
 
   /*
    * dccsids: return a string representing the CCSID
    * Note: a buffer at least DCCSIDS_MAX should be passed in
    */
   #define DCCSID_MAX (11)
-  const char* dccsids(int dccsid, char* buf);
+  const char* dccsids(int dccsid, char* buff);
 
   /*
    * has_length_prefix: returns 1 if the record format requires length prefixes,
@@ -179,8 +193,10 @@
 
   /*
    * low level qualifier: return low level qualifier of the dataset
+   * Note: a buffer at least LLQ_MAX should be passed in
    */
-  const char* low_level_qualifier(struct DFILE* dfile);
+  #define LLQ_MAX (9)
+  const char* low_level_qualifier(struct DFILE* dfile, char* buff);
 
     
 #endif
