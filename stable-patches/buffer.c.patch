@@ -1,5 +1,5 @@
 diff --git a/src/buffer.c b/src/buffer.c
-index 58e9718e3..cfc47bd9a 100644
+index 58e9718e3..d9455e40f 100644
 --- a/src/buffer.c
 +++ b/src/buffer.c
 @@ -26,6 +26,7 @@
@@ -54,13 +54,12 @@ index 58e9718e3..cfc47bd9a 100644
  #endif
      }
  }
-@@ -2101,6 +2118,120 @@ buflist_new(
+@@ -2101,6 +2118,119 @@ buflist_new(
      if (top_file_num == 1)
  	hash_init(&buf_hashtab);
  
 +  // Dataset I/O
 +#ifdef __MVS__
-+    //TODO: check for binary
 +    if (ffname != NULL)
 +    {
 +      if (is_dataset(ffname)) {
@@ -90,20 +89,18 @@ index 58e9718e3..cfc47bd9a 100644
 +        // Create a temporary file to represent the dataset 
 +        ffname = vim_tempname('z', TRUE);
 +
-+        // Add LLQ as suffix
-+        char file_suffix[256];
-+        char ffname2[PATH_MAX];
-+        map_to_unixfilename(dsfile, file_suffix);
-+        //high_level_qualifier(dsfile, file_suffix);
-+        //TODO: add member name
-+        //TODO: Add support for seq
-+        //TODO: add mapping from LLQ to extension
-+        snprintf(ffname2, PATH_MAX, "%s-%s", ffname, file_suffix);
-+        ffname = ffname2;
++        // Map dataset to file path
++        char file_suffix[PATH_MAX];
++        char newpath[PATH_MAX];
++        map_to_unixfile(dsfile, file_suffix);
++        snprintf(newpath, PATH_MAX, "%s-%s", ffname, file_suffix);
 +
 +        // Set ffname and sfname to temporary
-+        sfname = vim_strsave(ffname);
++        sfname = vim_strsave(newpath);
 +        ffname = sfname;
++
++        if (dsfile->is_binary) 
++          curbuf->b_p_bin = TRUE;
 +    
 +        // Default perms are writeable, unless ds is readonly
 +        int perms = 0666;
@@ -133,11 +130,12 @@ index 58e9718e3..cfc47bd9a 100644
 +              close(temp_fd);
 +              return NULL;
 +            }
-+            if (write(temp_fd, "\x15", 1) != 1) {
-+              close_dataset(dsfile);
-+              close(temp_fd);
-+              return NULL;
-+            }
++            if (!curbuf->b_p_bin) 
++              if (write(temp_fd, "\x15", 1) != 1) {
++                close_dataset(dsfile);
++                close(temp_fd);
++                return NULL;
++              }
 +            i += reclen;
 +          }
 +        } else {
@@ -147,12 +145,13 @@ index 58e9718e3..cfc47bd9a 100644
 +              close(temp_fd);
 +              return NULL;
 +            }
-+            if (write(temp_fd, "\x15", 1) != 1) {
-+              free(dsfile->buffer);
-+              close_dataset(dsfile);
-+              close(temp_fd);
-+              return NULL;
-+            }
++            if (!curbuf->b_p_bin)
++              if (write(temp_fd, "\x15", 1) != 1) {
++                free(dsfile->buffer);
++                close_dataset(dsfile);
++                close(temp_fd);
++                return NULL;
++              }
 +            i = i + dsfile->reclen;
 +          }
 +        }
@@ -175,7 +174,7 @@ index 58e9718e3..cfc47bd9a 100644
      fname_expand(curbuf, &ffname, &sfname);	// will allocate ffname
  
      /*
-@@ -2195,9 +2326,10 @@ buflist_new(
+@@ -2195,9 +2325,10 @@ buflist_new(
  
      if (ffname != NULL)
      {

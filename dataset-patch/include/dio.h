@@ -80,6 +80,7 @@
     char* msgbuff;
     size_t msgbufflen;
     int readonly:1; 
+    int is_binary;
     FILE* logstream;
     void* internal;
   };
@@ -245,5 +246,10 @@
 
     return 0;
   }
+
+  /*
+   * is_binary: checks if a string conains binary content
+   */
+  int is_binary(const char *str, int length);
 
 #endif

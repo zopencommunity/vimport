@@ -501,6 +501,7 @@ static enum DIOERR read_dataset_internal(struct DFILE* dfile)
   size_t size = 1;
   size_t count = dfile->reclen;
   size_t bytes_to_copy;
+  int isbinary = 0;
   uint16_t reclen;
   errno = 0;
   while (1) {
@@ -526,12 +527,15 @@ static enum DIOERR read_dataset_internal(struct DFILE* dfile)
       difile->cur_read_offset += sizeof(reclen);
     }
     memcpy(&dfile->buffer[difile->cur_read_offset], record, bytes_to_copy);
+    if (!is_binary)
+      isbinary = is_binary(&dfile->buffer[difile->cur_read_offset], bytes_to_copy); 
 #ifdef DEBUG
     printf("%5.5u <%*.*s>\n", reclen, reclen, reclen, record);
 #endif
     difile->cur_read_offset += rc;
   }
   dfile->bufflen = difile->cur_read_offset;
+  dfile->is_binary = isbinary;
   return DIOERR_NOERROR;
 }
 
@@ -796,4 +800,17 @@ const char* map_to_unixfile(struct DFILE* dfile, char* unixfile) {
   }
 
   return unixfile;
+}
+
+int is_binary(const char *str, int length) {
+  for (int i = 0; i < length; i++) {
+    char c = str[i];
+
+    // NUL byte (0x00) and Newline (0x15)
+    if (c == 0x00 || c == 0x15) {
+      return 1;
+    }
+  }
+
+  return 0;
 }
