@@ -1,5 +1,6 @@
 #include "dio.h"
 #include <stdio.h>
+#include <limits.h>
 
 int main(int argc, char* argv[]) {
   int rc;
@@ -8,6 +9,10 @@ int main(int argc, char* argv[]) {
   char dsorgbuff[DSORG_MAX];
   char recfmbuff[RECFM_MAX];
   char ccsidbuff[DCCSID_MAX];
+  char mem[MEM_MAX+1];
+  char hlqstr[MEM_MAX+1];
+  char hml[DS_MAX+1];
+  char unix[_POSIX_PATH_MAX];
 
   if (argc != 3) {
     fprintf(stderr, "Syntax: argv[0] <hlq> <relative-dataset>\n");
@@ -29,8 +34,10 @@ int main(int argc, char* argv[]) {
     }
     return 4;
   }
-  printf("Dataset attributes for dataset %s: dsorg:%s recfm:%s lrecl:%d ccsid:%s\n",
-    relds, dsorgs(dfile->dsorg, dsorgbuff), recfms(dfile->recfm, recfmbuff), dfile->reclen, dccsids(dfile->dccsid, ccsidbuff));
+  printf("Dataset attributes for dataset %s: mem:%s hlq:%s hightomid:%s dsorg:%s recfm:%s lrecl:%d ccsid:%s\n",
+    relds, member_name(dfile, mem), high_level_qualifier(dfile, hlqstr), high_to_mid_level_qualifier(dfile, hml), dsorgs(dfile->dsorg, dsorgbuff), recfms(dfile->recfm, recfmbuff), dfile->reclen, dccsids(dfile->dccsid, ccsidbuff));
+
+  printf("Unix file: %s\n", map_to_unixfile(dfile, unix));
 
   rc = read_dataset(dfile);
   if (rc) {

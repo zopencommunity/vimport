@@ -768,12 +768,12 @@ const char* llq_to_extension(struct DFILE* dfile, char* llq, char* extension) {
   return extension;
 }
 
-const char* map_to_unixfilename(struct DFILE* dfile, char* unix) {
-  char member[256];
-  char hlq[256];
-  char llq[256];
-  char hightomid[256];
-  char extension[256];
+const char* map_to_unixfile(struct DFILE* dfile, char* unixfile) {
+  char member[MEM_MAX+1];
+  char hlq[HLQ_MAX+1];
+  char llq[LLQ_MAX+1];
+  char hightomid[DS_MAX+1];
+  char extension[EXTENSION_MAX];
 
   // We we want to avoid double converting, so call the APIs in EBCDIC mode and then switch back
   int orig = __ae_thread_swapmode(__AE_EBCDIC_MODE);
@@ -785,15 +785,15 @@ const char* map_to_unixfilename(struct DFILE* dfile, char* unix) {
   
   struct DIFILE* difile = (struct DIFILE*) dfile->internal;
   if (has_member(difile))
-    sprintf(unix, "%s.%s.%s", hightomid, member, llq_to_extension(dfile, llq, extension));
+    sprintf(unixfile, "%s.%s.%s", hightomid, member, llq_to_extension(dfile, llq, extension));
   else
-    sprintf(unix, "%s.%s", hightomid,  llq_to_extension(dfile, llq, extension));
+    sprintf(unixfile, "%s.%s", hightomid,  llq_to_extension(dfile, llq, extension));
 
   __ae_thread_swapmode(orig);
 
   if (__isASCII()) {
-    __e2a_l(unix, strlen(unix));
+    __e2a_l(unixfile, strlen(unixfile));
   }
 
-  return unix;
+  return unixfile;
 }
