@@ -1,10 +1,7 @@
 #ifndef __DIOINT__
   #define __DIOINT__ 1
 
-  #define DD_MAX (8)
-  #define DS_MAX (44)
-  #define MEM_MAX (8)
-  #define DS_FULL_MAX (DS_MAX+MEM_MAX+2)
+  #include <dio.h>
 
   enum DSTATE {
     D_CLOSED=1,

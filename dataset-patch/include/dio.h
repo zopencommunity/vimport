@@ -83,6 +83,15 @@
     FILE* logstream;
     void* internal;
   };
+    
+  /* CONSTANTS */
+  #define DD_MAX (8)
+  #define HLQ_MAX (8)
+  #define LLQ_MAX HLQ_MAX
+  #define DS_MAX (44)
+  #define MEM_MAX (8)
+  #define DS_FULL_MAX (DS_MAX+MEM_MAX+2)
+  #define EXTENSION_MAX 16
 
   /*
    * open_dataset: given a dataset name in the format:
@@ -195,12 +204,35 @@
    * low level qualifier: return low level qualifier of the dataset
    * Note: a buffer at least LLQ_MAX should be passed in
    */
-  #define LLQ_MAX (9)
   const char* low_level_qualifier(struct DFILE* dfile, char* buff);
 
   
   /*
-   * is_dataset: return if a filename is a daset or not
+   * member_name: return the member name if one exists
+   * Note: a buffer at least MEM_MAX+1 should be passed in
+   */
+  const char* member_name(struct DFILE* dfile, char* member_copy);
+
+  /*
+   * high level qualifier: return the hlq if one exists
+   * Note: a buffer at least HLQ_MAX+1 should be passed in
+   */
+  const char* high_level_qualifier(struct DFILE* dfile, char* hlq_copy);
+  
+  /*
+   * high_to_mid_level_qualifier: return high to mid-level qualifier
+   * Note: a buffer at least DS_MAX+1 should be passed in
+   */
+  const char* high_to_mid_level_qualifier(struct DFILE* dfile, char* hmql_copy);
+
+  /*
+   * map_to_unixfile: map the dataset to a unix filename
+   * Note: a buffer at least PATH_MAX should be passed in
+   */
+  const char* map_to_unixfile(struct DFILE* dfile, char* unixfile);
+
+  /*
+   * is_dataset: return true if a filename is a dataset or false otherwise
    */
   static int is_dataset(const char *filename) {
     if (filename == NULL || strlen(filename) < 2) {
@@ -214,14 +246,4 @@
     return 0;
   }
 
-  #define MEM_MAX (9)
-  const char* member_name(struct DFILE* dfile, char* member_copy);
-
-  const char* high_level_qualifier(struct DFILE* dfile, char* hlq_copy);
-  
-  const char* high_to_mid_level_qualifier(struct DFILE* dfile, char* hmql_copy);
-
-  const char* map_to_unixfilename(struct DFILE* dfile, char* unix);
-
-    
 #endif
