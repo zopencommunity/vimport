@@ -10,7 +10,10 @@
 #include <_Nascii.h>
 #include <unistd.h>
 
-/*#define DEBUG 1*/
+#define _OPEN_SYS_EXT
+#include <sys/ps.h>
+
+/* #define DEBUG 1 */
 #define DD_SYSTEM "????????"
 #define ERRNO_NONEXISTANT_FILE (67)
 #define DIO_MSG_BUFF_LEN (4095)
@@ -114,76 +117,233 @@ static void strupper(char* str)
   }
 }
 
+static void strlower(char* str)
+{
+  for (int i=0; i<strlen(str); ++i) {
+    if (isupper(str[i])) {
+      str[i] = tolower(str[i]);
+    }
+  }
+}
+
+
 static int has_member(struct DIFILE* difile)
 {
   return difile->member_name[0] != '\0';
 }
-  
-static enum DIOERR init_dataset_info(struct DFILE* dfile, const char* dataset_name, struct DIFILE* difile)
+
+static int has_mlqs(struct DIFILE* difile)
+{
+  return difile->mlqs[0] != '\0';
+}
+
+
+struct DS_INTERNALS {
+  const char* ds_start;
+  const char* name_end;
+  const char* ds_end;
+  const char* hlq; /* could be null */
+  const char* mlqs;
+  const char* llq;
+  const char* first_dot;
+  const char* last_dot;
+  const char* mem_start; /* could be null */
+  const char* open_paren; /* could be null */
+  const char* close_paren; /* could be null */
+  int is_relative:1;
+};
+
+static enum DIOERR check_dataset(struct DFILE* dfile, const char* dataset_name, struct DS_INTERNALS* dsi)
 {
   size_t dataset_name_len = strlen(dataset_name);
-  size_t ds_full_len;
-  const char* dataset_name_start;
-  const char* dataset_name_end;
 
+  /*
+   * Check the input dataset name conforms to the syntax: //'<dataset>' or //<dataset>
+   */
   if ((dataset_name_len > DS_MAX+MEM_MAX+2+2+2) || (dataset_name_len < 2+2)) {
     errmsg(dfile, "Dataset name %s is not a valid dataset name of format: //<dataset> or //'<dataset>'.", dataset_name);
     return DIOERR_LE_DATASET_NAME_TOO_LONG_OR_TOO_SHORT;
   }
-
   if (memcmp(dataset_name, "//", 2)) {
     errmsg(dfile, "Dataset name %s does not start with // and therefore is not a valid dataset name.", dataset_name);
     return DIOERR_INVALID_LE_DATASET_NAME;
   }
+
   if (!memcmp(dataset_name, "//'", 3)) {
     if (dataset_name[dataset_name_len-1] != '\'') {
       errmsg(dfile, "Dataset name %s does not have balanced single quotes.", dataset_name);
       return DIOERR_LE_DATASET_NAME_QUOTE_MISMATCH;
     }
-    dataset_name_start = &dataset_name[3];
-    dataset_name_end = &dataset_name[dataset_name_len];
+    dsi->is_relative = 0;
+    dsi->ds_start = &dataset_name[3];
+    dsi->name_end = &dataset_name[dataset_name_len-1];
   } else {
-    dataset_name_start = &dataset_name[2];
-    dataset_name_end = &dataset_name[dataset_name_len-1];
-    errmsg(dfile, "No support (yet) for open_dataset of relative dataset %s read/write - datasets must be fully qualified.", dataset_name);
-    return DIOERR_RELATIVE_DATASET_NAME_NOT_IMPLEMENTED_YET;
+    dsi->is_relative = 1;
+    dsi->ds_start = &dataset_name[2];
+    dsi->name_end = &dataset_name[dataset_name_len];
   }
-  ds_full_len = dataset_name_end - dataset_name_start - 1;
-  const char* open_paren=strchr(dataset_name, '(');
-  const char* close_paren=strchr(dataset_name, ')');
 
-  size_t dslen;
-  if (open_paren && close_paren) {
-    dslen = open_paren - dataset_name_start;
-    size_t memlen = close_paren - open_paren - 1;
+  /*
+   * Check the dataset follows member name syntax: <dataset> or <dataset>(member)
+   */
+  dsi->open_paren = strchr(dataset_name, '(');
+  dsi->close_paren = strchr(dataset_name, ')');
+
+  if (dsi->open_paren && dsi->close_paren) {
+    size_t memlen = dsi->close_paren - dsi->open_paren - 1;
     if (memlen > MEM_MAX) {
       errmsg(dfile, "Member name of %s is more than %d characters.", dataset_name, MEM_MAX);
       return DIOERR_MEMBER_NAME_TOO_LONG;
     }
     /* dataset member - valid */
-    memcpy(difile->member_name, open_paren+1, memlen);
-    difile->member_name[memlen] = '\0';
-  } else if (!open_paren && !close_paren) {
-    /* dataset - valid */
-    dslen = dataset_name_end - dataset_name_start - 1;
-    difile->member_name[0] = '\0';
+    dsi->mem_start = dsi->open_paren+1;
+    dsi->ds_end = dsi->open_paren;
+  } else if (!dsi->open_paren && !dsi->close_paren) {
+    /* dataset - valid, no member name */
+    dsi->mem_start = NULL;
+    dsi->ds_end = dsi->name_end;
   } else {
     /* mis-matched parens - invalid */
     errmsg(dfile, "Dataset %s is not a valid dataset name or dataset member name.", dataset_name);
     return DIOERR_LE_DATASET_NAME_PAREN_MISMATCH;
   }
-  memcpy(difile->dataset_full_name, dataset_name_start, ds_full_len);
+
+  dsi->first_dot = strchr(dsi->ds_start, '.');
+  dsi->last_dot = strrchr(dsi->ds_start, '.');
+
+  /*
+   * Check the HLQ, MLQs, LLQ are all reasonable length (more detailed checks will be delegated to SVC99
+   */
+#ifdef DEBUG
+  printf("dataset_name:%p ds_start:%p first_dot:%p last_dot:%p mem_start:%p ds_end:%p open_paren:%p close_paren:%p mem_start:%p name_end:%p is_relative:%d\n",
+    dataset_name, dsi->ds_start, dsi->first_dot, dsi->last_dot, dsi->mem_start, dsi->ds_end, dsi->open_paren, dsi->close_paren, dsi->mem_start, dsi->name_end, dsi->is_relative);
+#endif
+
+  if (dsi->first_dot && dsi->last_dot) {
+    /* Note first_dot and last_dot can be the same: consider SYS1.MACLIB */
+  } else {
+    errmsg(dfile, "Dataset %s should have at least 1 qualifiers.", dataset_name);
+    return DIOERR_NOT_ENOUGH_QUALIFIERS;
+  }
+
+  if (!dsi->is_relative) {
+    dsi->hlq = dsi->ds_start; 
+    size_t hlq_len = dsi->first_dot - dsi->hlq - 1;
+    if (hlq_len > HLQ_MAX) {
+      errmsg(dfile, "Dataset %s high level qualifier is too long.", dataset_name);
+      return DIOERR_HLQ_TOO_LONG;
+    }
+    if (dsi->first_dot == dsi->last_dot) {
+      dsi->mlqs = NULL;
+    } else {
+      dsi->mlqs = dsi->first_dot + 1;
+    }
+  } else {
+    dsi->hlq = NULL;
+    if (dsi->first_dot == dsi->last_dot) {
+      dsi->mlqs = NULL;
+    } else {
+      dsi->mlqs = dsi->ds_start;
+    }
+  }
+
+  if (dsi->mlqs) {
+    size_t mlqslen = dsi->last_dot - dsi->mlqs - 1;
+    if (mlqslen > MLQS_MAX) {
+      errmsg(dfile, "Dataset %s mid level qualifiers are too long.", dataset_name);
+      return DIOERR_MLQS_TOO_LONG;
+    }
+  }
+
+  dsi->llq = dsi->last_dot + 1;
+  size_t llqlen = dsi->ds_end - dsi->llq - 1;
+  if (llqlen > LLQ_MAX) {
+    errmsg(dfile, "Dataset %s low level qualifier is too long.", dataset_name);
+    return DIOERR_LLQ_TOO_LONG;
+  }
+
+  return DIOERR_NOERROR;
+}
+
+static enum DIOERR init_dataset_info(struct DFILE* dfile, const char* dataset_name, struct DIFILE* difile)
+{
+  size_t ds_full_len;
+  size_t ds_len;
+  size_t hlq_len;
+  size_t mlqs_len;
+  size_t llq_len;
+  size_t mem_len;
+
+  enum DIOERR rc;
+  struct DS_INTERNALS dsi;
+  rc = check_dataset(dfile, dataset_name, &dsi);
+
+  if (rc) {
+    return rc;
+  }
+  ds_full_len = dsi.name_end - dsi.ds_start;
+  ds_len = dsi.ds_end - dsi.ds_start;
+
+  if (dsi.is_relative) {
+    __getuserid(difile->hlq, HLQ_MAX);
+    hlq_len = strlen(difile->hlq);
+  } else {
+    hlq_len = dsi.first_dot - dsi.hlq;
+    memcpy(difile->hlq, dsi.hlq, hlq_len);
+    difile->hlq[hlq_len] = '\0';
+  }
+
+  if (dsi.is_relative) {
+    memcpy(difile->dataset_full_name, difile->hlq, hlq_len);
+    difile->dataset_full_name[hlq_len] = '.';
+    memcpy(&difile->dataset_full_name[hlq_len+1], dsi.ds_start, ds_full_len);
+    ds_full_len += (hlq_len+1);
+  } else {
+    memcpy(difile->dataset_full_name, dsi.ds_start, ds_full_len);
+  }
   difile->dataset_full_name[ds_full_len] = '\0';
-  memcpy(difile->dataset_name, dataset_name_start, dslen);
-  difile->dataset_name[dslen] = '\0';
+
+  if (dsi.is_relative) {
+    memcpy(difile->dataset_name, difile->hlq, hlq_len);
+    difile->dataset_name[hlq_len] = '.';
+    memcpy(&difile->dataset_name[hlq_len+1], dsi.ds_start, ds_len);
+    ds_len += (hlq_len+1);
+  } else {
+    memcpy(difile->dataset_name, dsi.ds_start, ds_len);
+  }
+  difile->dataset_name[ds_len] = '\0';
+
+  if (dsi.mlqs) {
+    mlqs_len = dsi.last_dot - dsi.mlqs;
+  } else {
+    mlqs_len = 0;
+  }
+  memcpy(difile->mlqs, dsi.mlqs, mlqs_len);
+  difile->mlqs[mlqs_len] = '\0';
+
+  llq_len = dsi.ds_end - dsi.llq;
+  memcpy(difile->llq, dsi.llq, llq_len);
+  difile->llq[llq_len] = '\0';
+
+  if (dsi.mem_start) {
+    mem_len = dsi.close_paren - dsi.mem_start;
+    memcpy(difile->member_name, dsi.mem_start, mem_len);
+    difile->member_name[mem_len] = '\0';
+  } else {
+    difile->member_name[0] = '\0';
+  }
 
   strupper(difile->dataset_full_name);
   strupper(difile->dataset_name);
   strupper(difile->member_name);
+  strupper(difile->hlq);
+  strupper(difile->mlqs);
+  strupper(difile->llq);
 
 #ifdef DEBUG
-  printf("Original <%s> full <%s> name <%s> member <%s>\n", 
-    dataset_name, difile->dataset_full_name, difile->dataset_name, difile->member_name);
+  printf("Original <%s> full <%s> name <%s> member <%s> hlq <%s> mlqs <%s> llq <%s>\n", 
+    dataset_name, difile->dataset_full_name, difile->dataset_name, difile->member_name, 
+    difile->hlq, difile->mlqs, difile->llq);
 #endif
   return DIOERR_NOERROR;
 }
@@ -656,34 +816,6 @@ enum DIOERR close_dataset(struct DFILE* dfile)
   return rc;
 }
 
-const char* low_level_qualifier(struct DFILE* dfile, char* llq_copy)
-{
-  struct DIFILE* difile = (struct DIFILE*) dfile->internal;
-
-  const char* last_dot = strrchr(difile->dataset_name, '.');
-  const char* llq;
-
-  /*
-   * A valid dataset name always has at least one dot, so this check is
-   * not required unless the call is made as the DFILE structure is being established.
-   */
-  if (last_dot == NULL) {
-    llq = difile->dataset_name;
-  } else {
-    llq = last_dot + 1;
-  }
-  size_t llqlen = strlen(llq);
-  if (llqlen > LLQ_MAX-1) {
-    llqlen = LLQ_MAX-1;
-  }
-
-  memcpy(llq_copy, llq, llqlen);
-  llq_copy[llqlen] = '\0';
-  if (__isASCII()) {
-    __e2a_l(llq_copy, llqlen);
-  }
-  return llq_copy;
-}
 
 const char* member_name(struct DFILE* dfile, char* member_copy)
 {
@@ -703,48 +835,36 @@ const char* member_name(struct DFILE* dfile, char* member_copy)
 
 const char* high_level_qualifier(struct DFILE* dfile, char* hlq_copy) {
   struct DIFILE* difile = (struct DIFILE*) dfile->internal;
-
-  const char* first_dot = strchr(difile->dataset_full_name, '.');
-  const char* hlq;
-
-  if (first_dot == NULL) {
-    strcpy(hlq_copy, difile->dataset_full_name); // No dot means the entire name is the HLQ
-  } else {
-    size_t hlqlen = first_dot - difile->dataset_full_name;
-    if (hlqlen > DS_FULL_MAX-1) {
-      hlqlen = DS_FULL_MAX-1;
-    }
-    memcpy(hlq_copy, difile->dataset_full_name, hlqlen);
-    hlq_copy[hlqlen] = '\0';
-    if (__isASCII()) {
-      __e2a_l(hlq_copy, hlqlen);
-    }
+  strcpy(hlq_copy, difile->hlq);
+  if (__isASCII()) {
+    __e2a_s(hlq_copy);
   }
   return hlq_copy;
 }
- 
-const char* high_to_mid_level_qualifier(struct DFILE* dfile, char* hmql_copy) {
+
+/*
+ * Note mid_level_qualifiers can be nothing
+ */
+const char* mid_level_qualifiers(struct DFILE* dfile, char* mlqs_copy) {
   struct DIFILE* difile = (struct DIFILE*) dfile->internal;
-
-  const char* last_dot = strrchr(difile->dataset_full_name, '.');
-
-  if (last_dot == NULL) {
-    strcpy(hmql_copy, difile->dataset_full_name); // No dot means the entire name is the HMQL
-  } else {
-    size_t hmql_len = last_dot - difile->dataset_full_name;
-    if (hmql_len > DS_FULL_MAX-1) {
-      hmql_len = DS_FULL_MAX-1;
-    }
-    memcpy(hmql_copy, difile->dataset_full_name, hmql_len);
-    hmql_copy[hmql_len] = '\0';
-    if (__isASCII()) {
-      __e2a_l(hmql_copy, hmql_len);
-    }
+  strcpy(mlqs_copy, difile->mlqs);
+  if (__isASCII()) {
+    __e2a_s(mlqs_copy);
   }
-  return hmql_copy;
+  return mlqs_copy;
 }
 
-const char* llq_to_extension(struct DFILE* dfile, char* llq, char* extension) {
+const char* low_level_qualifier(struct DFILE* dfile, char* llq_copy)
+{
+  struct DIFILE* difile = (struct DIFILE*) dfile->internal;
+  strcpy(llq_copy, difile->llq);
+  if (__isASCII()) {
+    __e2a_s(llq_copy);
+  }
+  return llq_copy;
+}
+
+const char* llq_to_extension(struct DFILE* dfile, const char* llq, char* extension) {
   if (strcasecmp(llq, "COBOL") == 0) {
     strcpy(extension, "cbl");
   } else if (strcasecmp(llq, "H") == 0) {
@@ -757,46 +877,38 @@ const char* llq_to_extension(struct DFILE* dfile, char* llq, char* extension) {
     strcpy(extension, "jcl");
   } else if (strcasecmp(llq, "PLI") == 0) {
     strcpy(extension, "pli");
-  } else if (strcasecmp(llq, "SRC") == 0) {
-    strcpy(extension, "c"); // is SRC usually C source?
   } else if (strcasecmp(llq, "TXT") == 0) {
     strcpy(extension, "txt");
   } else {
-    strcpy(extension, "txt"); // Is this a good default?
-  }
-
-  if (__isASCII()) {
-    __e2a_l(extension, strlen(extension));
+    strcpy(extension, llq); // Default to lower-case LLQ
+    strlower(extension);
   }
 
   return extension;
 }
 
 const char* map_to_unixfile(struct DFILE* dfile, char* unixfile) {
-  char member[MEM_MAX+1];
-  char hlq[HLQ_MAX+1];
-  char llq[LLQ_MAX+1];
-  char hightomid[DS_MAX+1];
   char extension[EXTENSION_MAX];
 
-  // We we want to avoid double converting, so call the APIs in EBCDIC mode and then switch back
-  int orig = __ae_thread_swapmode(__AE_EBCDIC_MODE);
-
-  high_to_mid_level_qualifier(dfile, hightomid);
-  high_level_qualifier(dfile, hlq);
-  low_level_qualifier(dfile, llq);
-  member_name(dfile, member);
-  
   struct DIFILE* difile = (struct DIFILE*) dfile->internal;
-  if (has_member(difile))
-    sprintf(unixfile, "%s.%s.%s", hightomid, member, llq_to_extension(dfile, llq, extension));
-  else
-    sprintf(unixfile, "%s.%s", hightomid,  llq_to_extension(dfile, llq, extension));
 
-  __ae_thread_swapmode(orig);
+  llq_to_extension(dfile, difile->llq, extension);
+  if (has_member(difile)) {
+    if (has_mlqs(difile)) {
+      sprintf(unixfile, "%s.%s.%s.%s", difile->hlq, difile->mlqs, difile->member_name, extension);
+    } else {
+      sprintf(unixfile, "%s.%s.%s", difile->hlq, difile->member_name, extension);
+    }
+  } else {
+    if (has_mlqs(difile)) {
+      sprintf(unixfile, "%s.%s.%s", difile->hlq, difile->mlqs, extension);
+    } else {
+      sprintf(unixfile, "%s.%s", difile->hlq, extension);
+    }
+  }
 
   if (__isASCII()) {
-    __e2a_l(unixfile, strlen(unixfile));
+    __e2a_s(unixfile);
   }
 
   return unixfile;

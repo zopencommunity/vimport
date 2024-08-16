@@ -1,110 +1,190 @@
-Dataset attributes for dataset DIO.FB.PDS: dsorg:PDS recfm:U lrecl:256 ccsid:?
+ds://'MFULTON.DIO.FB.PDS'
+Dataset attributes for dataset DIO.FB.PDS: mem: hlq:MFULTON mlqs:DIO.FB llq:PDS dsorg:PDS recfm:U lrecl:256 ccsid:?
+Unix file: MFULTON.DIO.FB.pds
 Read 1280 bytes from dataset DIO.FB.PDS
-Dataset attributes for dataset DIO.FB.PDS(MEM): dsorg:PDS recfm:F lrecl:80 ccsid:?
+ds://'MFULTON.DIO.FB.PDS(MEM)'
+Dataset attributes for dataset DIO.FB.PDS(MEM): mem:MEM hlq:MFULTON mlqs:DIO.FB llq:PDS dsorg:PDS recfm:F lrecl:80 ccsid:?
+Unix file: MFULTON.DIO.FB.MEM.pds
 Read 0 bytes from dataset DIO.FB.PDS(MEM)
 Dataset attributes for dataset DIO.FB.PDS(MEM): dsorg:PDS recfm:F lrecl:80 ccsid:?
 Wrote 240 bytes to dataset DIO.FB.PDS(MEM)
-Dataset attributes for dataset DIO.FB.PDS(MEM): dsorg:PDS recfm:F lrecl:80 ccsid:?
+ds://'MFULTON.DIO.FB.PDS(MEM)'
+Dataset attributes for dataset DIO.FB.PDS(MEM): mem:MEM hlq:MFULTON mlqs:DIO.FB llq:PDS dsorg:PDS recfm:F lrecl:80 ccsid:?
+Unix file: MFULTON.DIO.FB.MEM.pds
 Read 240 bytes from dataset DIO.FB.PDS(MEM)
-Dataset attributes for dataset DIO.FB.LIBRARY: dsorg:PDSE recfm:U lrecl:256 ccsid:?
+ds://'MFULTON.DIO.FB.LIBRARY'
+Dataset attributes for dataset DIO.FB.LIBRARY: mem: hlq:MFULTON mlqs:DIO.FB llq:LIBRARY dsorg:PDSE recfm:U lrecl:256 ccsid:?
+Unix file: MFULTON.DIO.FB.library
 Read 256 bytes from dataset DIO.FB.LIBRARY
-Dataset attributes for dataset DIO.FB.LIBRARY(MEM): dsorg:PDSE recfm:F lrecl:80 ccsid:?
+ds://'MFULTON.DIO.FB.LIBRARY(MEM)'
+Dataset attributes for dataset DIO.FB.LIBRARY(MEM): mem:MEM hlq:MFULTON mlqs:DIO.FB llq:LIBRARY dsorg:PDSE recfm:F lrecl:80 ccsid:?
+Unix file: MFULTON.DIO.FB.MEM.library
 Read 0 bytes from dataset DIO.FB.LIBRARY(MEM)
 Dataset attributes for dataset DIO.FB.LIBRARY(MEM): dsorg:PDSE recfm:F lrecl:80 ccsid:?
 Wrote 240 bytes to dataset DIO.FB.LIBRARY(MEM)
-Dataset attributes for dataset DIO.FB.LIBRARY(MEM): dsorg:PDSE recfm:F lrecl:80 ccsid:?
+ds://'MFULTON.DIO.FB.LIBRARY(MEM)'
+Dataset attributes for dataset DIO.FB.LIBRARY(MEM): mem:MEM hlq:MFULTON mlqs:DIO.FB llq:LIBRARY dsorg:PDSE recfm:F lrecl:80 ccsid:?
+Unix file: MFULTON.DIO.FB.MEM.library
 Read 240 bytes from dataset DIO.FB.LIBRARY(MEM)
-Dataset attributes for dataset DIO.FB.SEQ: dsorg:SEQ recfm:F lrecl:80 ccsid:?
+ds://'MFULTON.DIO.FB.SEQ'
+Dataset attributes for dataset DIO.FB.SEQ: mem: hlq:MFULTON mlqs:DIO.FB llq:SEQ dsorg:SEQ recfm:F lrecl:80 ccsid:?
+Unix file: MFULTON.DIO.FB.seq
 Read 0 bytes from dataset DIO.FB.SEQ
 Dataset attributes for dataset DIO.FB.SEQ: dsorg:SEQ recfm:F lrecl:80 ccsid:?
 Wrote 240 bytes to dataset DIO.FB.SEQ
-Dataset attributes for dataset DIO.FB.SEQ: dsorg:SEQ recfm:F lrecl:80 ccsid:?
+ds://'MFULTON.DIO.FB.SEQ'
+Dataset attributes for dataset DIO.FB.SEQ: mem: hlq:MFULTON mlqs:DIO.FB llq:SEQ dsorg:SEQ recfm:F lrecl:80 ccsid:?
+Unix file: MFULTON.DIO.FB.seq
 Read 240 bytes from dataset DIO.FB.SEQ
-Dataset attributes for dataset DIO.VB.PDS: dsorg:PDS recfm:U lrecl:256 ccsid:?
+ds://'MFULTON.DIO.VB.PDS'
+Dataset attributes for dataset DIO.VB.PDS: mem: hlq:MFULTON mlqs:DIO.VB llq:PDS dsorg:PDS recfm:U lrecl:256 ccsid:?
+Unix file: MFULTON.DIO.VB.pds
 Read 1280 bytes from dataset DIO.VB.PDS
-Dataset attributes for dataset DIO.VB.PDS(MEM): dsorg:PDS recfm:V lrecl:133 ccsid:?
+ds://'MFULTON.DIO.VB.PDS(MEM)'
+Dataset attributes for dataset DIO.VB.PDS(MEM): mem:MEM hlq:MFULTON mlqs:DIO.VB llq:PDS dsorg:PDS recfm:V lrecl:133 ccsid:?
+Unix file: MFULTON.DIO.VB.MEM.pds
 Read 0 bytes from dataset DIO.VB.PDS(MEM)
 Dataset attributes for dataset DIO.VB.PDS(MEM): dsorg:PDS recfm:V lrecl:133 ccsid:?
 Wrote 36 bytes to dataset DIO.VB.PDS(MEM)
-Dataset attributes for dataset DIO.VB.PDS(MEM): dsorg:PDS recfm:V lrecl:133 ccsid:?
+ds://'MFULTON.DIO.VB.PDS(MEM)'
+Dataset attributes for dataset DIO.VB.PDS(MEM): mem:MEM hlq:MFULTON mlqs:DIO.VB llq:PDS dsorg:PDS recfm:V lrecl:133 ccsid:?
+Unix file: MFULTON.DIO.VB.MEM.pds
 Read 36 bytes from dataset DIO.VB.PDS(MEM)
-Dataset attributes for dataset DIO.VB.LIBRARY: dsorg:PDSE recfm:U lrecl:256 ccsid:?
+ds://'MFULTON.DIO.VB.LIBRARY'
+Dataset attributes for dataset DIO.VB.LIBRARY: mem: hlq:MFULTON mlqs:DIO.VB llq:LIBRARY dsorg:PDSE recfm:U lrecl:256 ccsid:?
+Unix file: MFULTON.DIO.VB.library
 Read 256 bytes from dataset DIO.VB.LIBRARY
-Dataset attributes for dataset DIO.VB.LIBRARY(MEM): dsorg:PDSE recfm:V lrecl:133 ccsid:?
+ds://'MFULTON.DIO.VB.LIBRARY(MEM)'
+Dataset attributes for dataset DIO.VB.LIBRARY(MEM): mem:MEM hlq:MFULTON mlqs:DIO.VB llq:LIBRARY dsorg:PDSE recfm:V lrecl:133 ccsid:?
+Unix file: MFULTON.DIO.VB.MEM.library
 Read 0 bytes from dataset DIO.VB.LIBRARY(MEM)
 Dataset attributes for dataset DIO.VB.LIBRARY(MEM): dsorg:PDSE recfm:V lrecl:133 ccsid:?
 Wrote 36 bytes to dataset DIO.VB.LIBRARY(MEM)
-Dataset attributes for dataset DIO.VB.LIBRARY(MEM): dsorg:PDSE recfm:V lrecl:133 ccsid:?
+ds://'MFULTON.DIO.VB.LIBRARY(MEM)'
+Dataset attributes for dataset DIO.VB.LIBRARY(MEM): mem:MEM hlq:MFULTON mlqs:DIO.VB llq:LIBRARY dsorg:PDSE recfm:V lrecl:133 ccsid:?
+Unix file: MFULTON.DIO.VB.MEM.library
 Read 36 bytes from dataset DIO.VB.LIBRARY(MEM)
-Dataset attributes for dataset DIO.VB.SEQ: dsorg:SEQ recfm:V lrecl:133 ccsid:?
+ds://'MFULTON.DIO.VB.SEQ'
+Dataset attributes for dataset DIO.VB.SEQ: mem: hlq:MFULTON mlqs:DIO.VB llq:SEQ dsorg:SEQ recfm:V lrecl:133 ccsid:?
+Unix file: MFULTON.DIO.VB.seq
 Read 0 bytes from dataset DIO.VB.SEQ
 Dataset attributes for dataset DIO.VB.SEQ: dsorg:SEQ recfm:V lrecl:133 ccsid:?
 Wrote 36 bytes to dataset DIO.VB.SEQ
-Dataset attributes for dataset DIO.VB.SEQ: dsorg:SEQ recfm:V lrecl:133 ccsid:?
+ds://'MFULTON.DIO.VB.SEQ'
+Dataset attributes for dataset DIO.VB.SEQ: mem: hlq:MFULTON mlqs:DIO.VB llq:SEQ dsorg:SEQ recfm:V lrecl:133 ccsid:?
+Unix file: MFULTON.DIO.VB.seq
 Read 36 bytes from dataset DIO.VB.SEQ
-Dataset attributes for dataset DIO.U.PDS: dsorg:PDS recfm:U lrecl:256 ccsid:?
+ds://'MFULTON.DIO.U.PDS'
+Dataset attributes for dataset DIO.U.PDS: mem: hlq:MFULTON mlqs:DIO.U llq:PDS dsorg:PDS recfm:U lrecl:256 ccsid:?
+Unix file: MFULTON.DIO.U.pds
 Read 1280 bytes from dataset DIO.U.PDS
-Dataset attributes for dataset DIO.U.PDS(MEM): dsorg:PDS recfm:U lrecl:6144 ccsid:?
+ds://'MFULTON.DIO.U.PDS(MEM)'
+Dataset attributes for dataset DIO.U.PDS(MEM): mem:MEM hlq:MFULTON mlqs:DIO.U llq:PDS dsorg:PDS recfm:U lrecl:6144 ccsid:?
+Unix file: MFULTON.DIO.U.MEM.pds
 Read 0 bytes from dataset DIO.U.PDS(MEM)
 Dataset attributes for dataset DIO.U.PDS(MEM): dsorg:PDS recfm:U lrecl:6144 ccsid:?
 Wrote 18432 bytes to dataset DIO.U.PDS(MEM)
-Dataset attributes for dataset DIO.U.PDS(MEM): dsorg:PDS recfm:U lrecl:6144 ccsid:?
+ds://'MFULTON.DIO.U.PDS(MEM)'
+Dataset attributes for dataset DIO.U.PDS(MEM): mem:MEM hlq:MFULTON mlqs:DIO.U llq:PDS dsorg:PDS recfm:U lrecl:6144 ccsid:?
+Unix file: MFULTON.DIO.U.MEM.pds
 Read 18432 bytes from dataset DIO.U.PDS(MEM)
-Dataset attributes for dataset DIO.U.LIBRARY: dsorg:PDSE recfm:U lrecl:256 ccsid:?
+ds://'MFULTON.DIO.U.LIBRARY'
+Dataset attributes for dataset DIO.U.LIBRARY: mem: hlq:MFULTON mlqs:DIO.U llq:LIBRARY dsorg:PDSE recfm:U lrecl:256 ccsid:?
+Unix file: MFULTON.DIO.U.library
 Read 256 bytes from dataset DIO.U.LIBRARY
-Dataset attributes for dataset DIO.U.LIBRARY(MEM): dsorg:PDSE recfm:U lrecl:6144 ccsid:?
+ds://'MFULTON.DIO.U.LIBRARY(MEM)'
+Dataset attributes for dataset DIO.U.LIBRARY(MEM): mem:MEM hlq:MFULTON mlqs:DIO.U llq:LIBRARY dsorg:PDSE recfm:U lrecl:6144 ccsid:?
+Unix file: MFULTON.DIO.U.MEM.library
 Read 0 bytes from dataset DIO.U.LIBRARY(MEM)
 Dataset attributes for dataset DIO.U.LIBRARY(MEM): dsorg:PDSE recfm:U lrecl:6144 ccsid:?
 Wrote 18432 bytes to dataset DIO.U.LIBRARY(MEM)
-Dataset attributes for dataset DIO.U.LIBRARY(MEM): dsorg:PDSE recfm:U lrecl:6144 ccsid:?
+ds://'MFULTON.DIO.U.LIBRARY(MEM)'
+Dataset attributes for dataset DIO.U.LIBRARY(MEM): mem:MEM hlq:MFULTON mlqs:DIO.U llq:LIBRARY dsorg:PDSE recfm:U lrecl:6144 ccsid:?
+Unix file: MFULTON.DIO.U.MEM.library
 Read 18432 bytes from dataset DIO.U.LIBRARY(MEM)
-Dataset attributes for dataset DIO.U.SEQ: dsorg:SEQ recfm:U lrecl:6144 ccsid:?
+ds://'MFULTON.DIO.U.SEQ'
+Dataset attributes for dataset DIO.U.SEQ: mem: hlq:MFULTON mlqs:DIO.U llq:SEQ dsorg:SEQ recfm:U lrecl:6144 ccsid:?
+Unix file: MFULTON.DIO.U.seq
 Read 0 bytes from dataset DIO.U.SEQ
 Dataset attributes for dataset DIO.U.SEQ: dsorg:SEQ recfm:U lrecl:6144 ccsid:?
 Wrote 18432 bytes to dataset DIO.U.SEQ
-Dataset attributes for dataset DIO.U.SEQ: dsorg:SEQ recfm:U lrecl:6144 ccsid:?
+ds://'MFULTON.DIO.U.SEQ'
+Dataset attributes for dataset DIO.U.SEQ: mem: hlq:MFULTON mlqs:DIO.U llq:SEQ dsorg:SEQ recfm:U lrecl:6144 ccsid:?
+Unix file: MFULTON.DIO.U.seq
 Read 18432 bytes from dataset DIO.U.SEQ
-Dataset attributes for dataset DIO.FBA.PDS: dsorg:PDS recfm:U lrecl:256 ccsid:?
+ds://'MFULTON.DIO.FBA.PDS'
+Dataset attributes for dataset DIO.FBA.PDS: mem: hlq:MFULTON mlqs:DIO.FBA llq:PDS dsorg:PDS recfm:U lrecl:256 ccsid:?
+Unix file: MFULTON.DIO.FBA.pds
 Read 1280 bytes from dataset DIO.FBA.PDS
-Dataset attributes for dataset DIO.FBA.PDS(MEM): dsorg:PDS recfm:FA lrecl:133 ccsid:?
+ds://'MFULTON.DIO.FBA.PDS(MEM)'
+Dataset attributes for dataset DIO.FBA.PDS(MEM): mem:MEM hlq:MFULTON mlqs:DIO.FBA llq:PDS dsorg:PDS recfm:FA lrecl:133 ccsid:?
+Unix file: MFULTON.DIO.FBA.MEM.pds
 Read 0 bytes from dataset DIO.FBA.PDS(MEM)
 Dataset attributes for dataset DIO.FBA.PDS(MEM): dsorg:PDS recfm:FA lrecl:133 ccsid:?
 Wrote 399 bytes to dataset DIO.FBA.PDS(MEM)
-Dataset attributes for dataset DIO.FBA.PDS(MEM): dsorg:PDS recfm:FA lrecl:133 ccsid:?
+ds://'MFULTON.DIO.FBA.PDS(MEM)'
+Dataset attributes for dataset DIO.FBA.PDS(MEM): mem:MEM hlq:MFULTON mlqs:DIO.FBA llq:PDS dsorg:PDS recfm:FA lrecl:133 ccsid:?
+Unix file: MFULTON.DIO.FBA.MEM.pds
 Read 399 bytes from dataset DIO.FBA.PDS(MEM)
-Dataset attributes for dataset DIO.FBA.LIBRARY: dsorg:PDSE recfm:U lrecl:256 ccsid:?
+ds://'MFULTON.DIO.FBA.LIBRARY'
+Dataset attributes for dataset DIO.FBA.LIBRARY: mem: hlq:MFULTON mlqs:DIO.FBA llq:LIBRARY dsorg:PDSE recfm:U lrecl:256 ccsid:?
+Unix file: MFULTON.DIO.FBA.library
 Read 256 bytes from dataset DIO.FBA.LIBRARY
-Dataset attributes for dataset DIO.FBA.LIBRARY(MEM): dsorg:PDSE recfm:FA lrecl:133 ccsid:?
+ds://'MFULTON.DIO.FBA.LIBRARY(MEM)'
+Dataset attributes for dataset DIO.FBA.LIBRARY(MEM): mem:MEM hlq:MFULTON mlqs:DIO.FBA llq:LIBRARY dsorg:PDSE recfm:FA lrecl:133 ccsid:?
+Unix file: MFULTON.DIO.FBA.MEM.library
 Read 0 bytes from dataset DIO.FBA.LIBRARY(MEM)
 Dataset attributes for dataset DIO.FBA.LIBRARY(MEM): dsorg:PDSE recfm:FA lrecl:133 ccsid:?
 Wrote 399 bytes to dataset DIO.FBA.LIBRARY(MEM)
-Dataset attributes for dataset DIO.FBA.LIBRARY(MEM): dsorg:PDSE recfm:FA lrecl:133 ccsid:?
+ds://'MFULTON.DIO.FBA.LIBRARY(MEM)'
+Dataset attributes for dataset DIO.FBA.LIBRARY(MEM): mem:MEM hlq:MFULTON mlqs:DIO.FBA llq:LIBRARY dsorg:PDSE recfm:FA lrecl:133 ccsid:?
+Unix file: MFULTON.DIO.FBA.MEM.library
 Read 399 bytes from dataset DIO.FBA.LIBRARY(MEM)
-Dataset attributes for dataset DIO.FBA.SEQ: dsorg:SEQ recfm:FA lrecl:133 ccsid:?
+ds://'MFULTON.DIO.FBA.SEQ'
+Dataset attributes for dataset DIO.FBA.SEQ: mem: hlq:MFULTON mlqs:DIO.FBA llq:SEQ dsorg:SEQ recfm:FA lrecl:133 ccsid:?
+Unix file: MFULTON.DIO.FBA.seq
 Read 0 bytes from dataset DIO.FBA.SEQ
 Dataset attributes for dataset DIO.FBA.SEQ: dsorg:SEQ recfm:FA lrecl:133 ccsid:?
 Wrote 399 bytes to dataset DIO.FBA.SEQ
-Dataset attributes for dataset DIO.FBA.SEQ: dsorg:SEQ recfm:FA lrecl:133 ccsid:?
+ds://'MFULTON.DIO.FBA.SEQ'
+Dataset attributes for dataset DIO.FBA.SEQ: mem: hlq:MFULTON mlqs:DIO.FBA llq:SEQ dsorg:SEQ recfm:FA lrecl:133 ccsid:?
+Unix file: MFULTON.DIO.FBA.seq
 Read 399 bytes from dataset DIO.FBA.SEQ
-Dataset attributes for dataset DIO.VBA.PDS: dsorg:PDS recfm:U lrecl:256 ccsid:?
+ds://'MFULTON.DIO.VBA.PDS'
+Dataset attributes for dataset DIO.VBA.PDS: mem: hlq:MFULTON mlqs:DIO.VBA llq:PDS dsorg:PDS recfm:U lrecl:256 ccsid:?
+Unix file: MFULTON.DIO.VBA.pds
 Read 1280 bytes from dataset DIO.VBA.PDS
-Dataset attributes for dataset DIO.VBA.PDS(MEM): dsorg:PDS recfm:VA lrecl:133 ccsid:?
+ds://'MFULTON.DIO.VBA.PDS(MEM)'
+Dataset attributes for dataset DIO.VBA.PDS(MEM): mem:MEM hlq:MFULTON mlqs:DIO.VBA llq:PDS dsorg:PDS recfm:VA lrecl:133 ccsid:?
+Unix file: MFULTON.DIO.VBA.MEM.pds
 Read 0 bytes from dataset DIO.VBA.PDS(MEM)
 Dataset attributes for dataset DIO.VBA.PDS(MEM): dsorg:PDS recfm:VA lrecl:133 ccsid:?
 Wrote 36 bytes to dataset DIO.VBA.PDS(MEM)
-Dataset attributes for dataset DIO.VBA.PDS(MEM): dsorg:PDS recfm:VA lrecl:133 ccsid:?
+ds://'MFULTON.DIO.VBA.PDS(MEM)'
+Dataset attributes for dataset DIO.VBA.PDS(MEM): mem:MEM hlq:MFULTON mlqs:DIO.VBA llq:PDS dsorg:PDS recfm:VA lrecl:133 ccsid:?
+Unix file: MFULTON.DIO.VBA.MEM.pds
 Read 36 bytes from dataset DIO.VBA.PDS(MEM)
-Dataset attributes for dataset DIO.VBA.LIBRARY: dsorg:PDSE recfm:U lrecl:256 ccsid:?
+ds://'MFULTON.DIO.VBA.LIBRARY'
+Dataset attributes for dataset DIO.VBA.LIBRARY: mem: hlq:MFULTON mlqs:DIO.VBA llq:LIBRARY dsorg:PDSE recfm:U lrecl:256 ccsid:?
+Unix file: MFULTON.DIO.VBA.library
 Read 256 bytes from dataset DIO.VBA.LIBRARY
-Dataset attributes for dataset DIO.VBA.LIBRARY(MEM): dsorg:PDSE recfm:VA lrecl:133 ccsid:?
+ds://'MFULTON.DIO.VBA.LIBRARY(MEM)'
+Dataset attributes for dataset DIO.VBA.LIBRARY(MEM): mem:MEM hlq:MFULTON mlqs:DIO.VBA llq:LIBRARY dsorg:PDSE recfm:VA lrecl:133 ccsid:?
+Unix file: MFULTON.DIO.VBA.MEM.library
 Read 0 bytes from dataset DIO.VBA.LIBRARY(MEM)
 Dataset attributes for dataset DIO.VBA.LIBRARY(MEM): dsorg:PDSE recfm:VA lrecl:133 ccsid:?
 Wrote 36 bytes to dataset DIO.VBA.LIBRARY(MEM)
-Dataset attributes for dataset DIO.VBA.LIBRARY(MEM): dsorg:PDSE recfm:VA lrecl:133 ccsid:?
+ds://'MFULTON.DIO.VBA.LIBRARY(MEM)'
+Dataset attributes for dataset DIO.VBA.LIBRARY(MEM): mem:MEM hlq:MFULTON mlqs:DIO.VBA llq:LIBRARY dsorg:PDSE recfm:VA lrecl:133 ccsid:?
+Unix file: MFULTON.DIO.VBA.MEM.library
 Read 36 bytes from dataset DIO.VBA.LIBRARY(MEM)
-Dataset attributes for dataset DIO.VBA.SEQ: dsorg:SEQ recfm:VA lrecl:133 ccsid:?
+ds://'MFULTON.DIO.VBA.SEQ'
+Dataset attributes for dataset DIO.VBA.SEQ: mem: hlq:MFULTON mlqs:DIO.VBA llq:SEQ dsorg:SEQ recfm:VA lrecl:133 ccsid:?
+Unix file: MFULTON.DIO.VBA.seq
 Read 0 bytes from dataset DIO.VBA.SEQ
 Dataset attributes for dataset DIO.VBA.SEQ: dsorg:SEQ recfm:VA lrecl:133 ccsid:?
 Wrote 36 bytes to dataset DIO.VBA.SEQ
-Dataset attributes for dataset DIO.VBA.SEQ: dsorg:SEQ recfm:VA lrecl:133 ccsid:?
+ds://'MFULTON.DIO.VBA.SEQ'
+Dataset attributes for dataset DIO.VBA.SEQ: mem: hlq:MFULTON mlqs:DIO.VBA llq:SEQ dsorg:SEQ recfm:VA lrecl:133 ccsid:?
+Unix file: MFULTON.DIO.VBA.seq
 Read 36 bytes from dataset DIO.VBA.SEQ
