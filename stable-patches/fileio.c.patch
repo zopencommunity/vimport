@@ -1,5 +1,5 @@
 diff --git a/src/fileio.c b/src/fileio.c
-index 07e05fc80..5158d527a 100644
+index 07e05fc80..6c388772b 100644
 --- a/src/fileio.c
 +++ b/src/fileio.c
 @@ -485,6 +485,9 @@ readfile(
@@ -12,20 +12,25 @@ index 07e05fc80..5158d527a 100644
  #else
  	if (!newfile
  		|| readonlymode
-@@ -2717,6 +2720,16 @@ failed:
- 
+@@ -2718,6 +2721,21 @@ failed:
      if (!(recoverymode && error))
  	retval = OK;
+ 
 +#ifdef __MVS__
-+  if (curbuf->is_dataset) {
++  // Set buffer properties for dataset
++  if (curbuf->is_dataset && !curbuf->b_p_bin) {
 +    char cmd[256];
-+    curbuf->b_p_tw = curbuf->dsfile->reclen+1;
++    // Set textwidth to maxrecordlength + 1
++    curbuf->b_p_tw = curbuf->reclen + 1;
++
++    // Set colorcolumn and update accordingly
 +    snprintf(cmd, sizeof(cmd), "setlocal colorcolumn=%d", curbuf->b_p_tw);
 +    do_cmdline_cmd((char_u *)cmd);
 +    do_cmdline_cmd((char_u *)"setlocal nowrap");
 +    check_colorcolumn(curwin);
 +  }
 +#endif
- 
++
  theend:
      if (curbuf->b_ml.ml_mfp != NULL
+ 		       && curbuf->b_ml.ml_mfp->mf_dirty == MF_DIRTY_YES_NOSYNC)
