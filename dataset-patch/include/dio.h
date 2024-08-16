@@ -66,6 +66,10 @@
     DIOERR_FOPEN_FOR_READ_FAILED=24,
     DIOERR_FREAD_FAILED=25,
     DIOERR_FWRITE_FAILED=26,
+    DIOERR_NOT_ENOUGH_QUALIFIERS=27,
+    DIOERR_HLQ_TOO_LONG=28,
+    DIOERR_MLQS_TOO_LONG=29,
+    DIOERR_LLQ_TOO_LONG=30,
     DIOERR_FORCE_INT=INT_MAX
   };
 
@@ -89,6 +93,7 @@
   #define DD_MAX (8)
   #define HLQ_MAX (8)
   #define LLQ_MAX HLQ_MAX
+  #define MLQS_MAX (44)
   #define DS_MAX (44)
   #define MEM_MAX (8)
   #define DS_FULL_MAX (DS_MAX+MEM_MAX+2)
@@ -201,12 +206,6 @@
    */
   int has_length_prefix(enum DRECFM recfm);
 
-  /*
-   * low level qualifier: return low level qualifier of the dataset
-   * Note: a buffer at least LLQ_MAX should be passed in
-   */
-  const char* low_level_qualifier(struct DFILE* dfile, char* buff);
-
   
   /*
    * member_name: return the member name if one exists
@@ -215,16 +214,22 @@
   const char* member_name(struct DFILE* dfile, char* member_copy);
 
   /*
-   * high level qualifier: return the hlq if one exists
+   * high level qualifier: return the hlq (either specified or determined)
    * Note: a buffer at least HLQ_MAX+1 should be passed in
    */
   const char* high_level_qualifier(struct DFILE* dfile, char* hlq_copy);
   
   /*
-   * high_to_mid_level_qualifier: return high to mid-level qualifier
+   * mid_level_qualifiers: return to mid-level qualifiers
    * Note: a buffer at least DS_MAX+1 should be passed in
    */
-  const char* high_to_mid_level_qualifier(struct DFILE* dfile, char* hmql_copy);
+  const char* mid_level_qualifiers(struct DFILE* dfile, char* hmql_copy);
+
+  /*
+   * low level qualifier: return low level qualifier of the dataset
+   * Note: a buffer at least LLQ_MAX should be passed in
+   */
+  const char* low_level_qualifier(struct DFILE* dfile, char* buff);
 
   /*
    * map_to_unixfile: map the dataset to a unix filename
