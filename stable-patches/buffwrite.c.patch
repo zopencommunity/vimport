@@ -1,5 +1,5 @@
 diff --git a/src/bufwrite.c b/src/bufwrite.c
-index bf79ad5bf..c070d83cc 100644
+index bf79ad5bf..b4e001bbb 100644
 --- a/src/bufwrite.c
 +++ b/src/bufwrite.c
 @@ -12,6 +12,7 @@
@@ -32,13 +32,17 @@ index bf79ad5bf..c070d83cc 100644
  	    write_info.bw_fd = fd;
  
  #if defined(UNIX)
-@@ -2510,6 +2526,98 @@ restore_backup:
+@@ -2510,6 +2526,102 @@ restore_backup:
  	}
      }
  
 +#ifdef __MVS__
-+  // copy from temporary file back to dataset
-+  if (curbuf->is_dataset) {
++  if (curbuf->is_dataset && write_bin) {
++	  msg_puts_attr(_("\nATTENTION: Writing binary datasets it not supported.\n"),
++		    attr | MSG_HIST);
++  }
++  else if (curbuf->is_dataset) {
++    // copy from temporary file back to dataset
 +    struct DFILE* dsfile = open_dataset(curbuf->dsname, NULL);
 +    if (!dsfile) {
 +		  errmsg = (char_u *)_("cannot open dataset");
