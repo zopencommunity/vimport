@@ -1,16 +1,18 @@
 diff --git a/src/buffer.c b/src/buffer.c
-index 58e9718e3..d9455e40f 100644
+index 34500e4ab..c217b73c7 100644
 --- a/src/buffer.c
 +++ b/src/buffer.c
-@@ -26,6 +26,7 @@
+@@ -26,6 +26,9 @@
   */
  
  #include "vim.h"
++#ifdef __MVS__
 +#include "dio.h"
++#endif
  
  
  #ifdef FEAT_EVAL
-@@ -71,6 +72,7 @@ static int	buf_free_count = 0;
+@@ -72,6 +75,7 @@ static int	buf_free_count = 0;
  static int	top_file_num = 1;	// highest file number
  static garray_T buf_reuse = GA_EMPTY;	// file numbers to recycle
  
@@ -18,43 +20,19 @@ index 58e9718e3..d9455e40f 100644
  /*
   * Return the highest possible buffer number.
   */
-@@ -214,6 +216,11 @@ open_buffer(
- #ifdef FEAT_SYN_HL
- 	if (old_tw != curbuf->b_p_tw)
- 	    check_colorcolumn(curwin);
-+    char cmd[256];
-+    curbuf->b_p_tw = curbuf->reclen+1;
-+    snprintf(cmd, sizeof(cmd), "setlocal colorcolumn=%d", curbuf->b_p_tw);
-+    do_cmdline_cmd((char_u *)cmd);
-+    do_cmdline_cmd((char_u *)"setlocal nowrap");
- #endif
- 	return FAIL;
-     }
-@@ -1184,6 +1191,11 @@ handle_swap_exists(bufref_T *old_curbuf)
- #ifdef FEAT_SYN_HL
- 	    if (old_tw != curbuf->b_p_tw)
- 		check_colorcolumn(curwin);
-+    char cmd[256];
-+    curbuf->b_p_tw = curbuf->reclen+1;
-+    snprintf(cmd, sizeof(cmd), "setlocal colorcolumn=%d", curbuf->b_p_tw);
-+    do_cmdline_cmd((char_u *)cmd);
-+    do_cmdline_cmd((char_u *)"setlocal nowrap");
- #endif
- 	}
- 	// If "old_curbuf" is NULL we are in big trouble here...
-@@ -1879,6 +1891,11 @@ set_curbuf(buf_T *buf, int action)
- #ifdef FEAT_SYN_HL
- 	if (old_tw != curbuf->b_p_tw)
- 	    check_colorcolumn(curwin);
-+    char cmd[256];
-+    curbuf->b_p_tw = curbuf->reclen+1;
-+    snprintf(cmd, sizeof(cmd), "setlocal colorcolumn=%d", curbuf->b_p_tw);
-+    do_cmdline_cmd((char_u *)cmd);
-+    do_cmdline_cmd((char_u *)"setlocal nowrap");
- #endif
-     }
- }
-@@ -2101,6 +2118,119 @@ buflist_new(
+@@ -2120,6 +2124,11 @@ buflist_new(
+ {
+     char_u	*ffname = ffname_arg;
+     char_u	*sfname = sfname_arg;
++#ifdef __MVS__
++    int isdataset = FALSE;
++    int reclen = -1;
++    char * dsname = NULL;
++#endif
+     buf_T	*buf;
+ #ifdef UNIX
+     stat_T	st;
+@@ -2128,6 +2137,119 @@ buflist_new(
      if (top_file_num == 1)
  	hash_init(&buf_hashtab);
  
@@ -82,9 +60,9 @@ index 58e9718e3..d9455e40f 100644
 +        }
 +
 +        // Store the original dataset name
-+        curbuf->dsname = vim_strsave(ffname);
-+        curbuf->reclen = dsfile->reclen;
-+        curbuf->is_dataset = TRUE; 
++        dsname = vim_strsave(ffname);
++        reclen = dsfile->reclen;
++        isdataset = TRUE; 
 +
 +        // Create a temporary file to represent the dataset 
 +        ffname = vim_tempname('z', TRUE);
@@ -174,7 +152,7 @@ index 58e9718e3..d9455e40f 100644
      fname_expand(curbuf, &ffname, &sfname);	// will allocate ffname
  
      /*
-@@ -2195,9 +2325,10 @@ buflist_new(
+@@ -2222,9 +2344,10 @@ buflist_new(
  
      if (ffname != NULL)
      {
@@ -187,3 +165,25 @@ index 58e9718e3..d9455e40f 100644
  
      clear_wininfo(buf);
      buf->b_wininfo = ALLOC_CLEAR_ONE(wininfo_T);
+@@ -2271,6 +2394,7 @@ buflist_new(
+ 	}
+ 	lastbuf = buf;
+ 
++
+ 	if ((flags & BLN_REUSE) && buf_reuse.ga_len > 0)
+ 	{
+ 	    // Recycle a previously used buffer number.  Used for buffers which
+@@ -2325,6 +2449,13 @@ buflist_new(
+ #endif
+ 
+     buf->b_fname = buf->b_sfname;
++#ifdef __MVS__
++  if (isdataset) {
++    buf->is_dataset = isdataset;
++    buf->reclen = reclen;
++    buf->dsname = dsname;
++  }
++#endif
+ #ifdef UNIX
+     if (st.st_dev == (dev_T)-1)
+ 	buf->b_dev_valid = FALSE;

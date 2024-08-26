@@ -1,5 +1,5 @@
 diff --git a/src/fileio.c b/src/fileio.c
-index 07e05fc80..6c388772b 100644
+index d27a1727e..bf0765746 100644
 --- a/src/fileio.c
 +++ b/src/fileio.c
 @@ -485,6 +485,9 @@ readfile(
