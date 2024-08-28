@@ -1,0 +1,13 @@
+diff --git a/src/Makefile b/src/Makefile
+index 257742f4c..58e4f7b29 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -1383,7 +1383,7 @@ ALL_IF_CFLAGS_EXTRA = $(LUA_CFLAGS_EXTRA) $(PERL_CFLAGS_EXTRA) $(PYTHON_CFLAGS_E
+ 
+ # Exclude $CFLAGS for osdef.sh, for Mac 10.4 some flags don't work together
+ # with "-E".
+-OSDEF_CFLAGS = $(PRE_DEFS) $(POST_DEFS)
++OSDEF_CFLAGS = $(PRE_DEFS) $(POST_DEFS) $(CFLAGS)
+ 
+ LINT_CFLAGS = -DLINT -I. $(PRE_DEFS) $(POST_DEFS) $(ALL_IF_CFLAGS) $(VTERM_CFLAGS) \
+ 	      -Dinline= -D__extension__= -Dalloca=alloca
