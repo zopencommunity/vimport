@@ -1,36 +1,8 @@
 diff --git a/src/bufwrite.c b/src/bufwrite.c
-index 23cd884bf..73111be6d 100644
+index 23cd884bf..05adc9d5a 100644
 --- a/src/bufwrite.c
 +++ b/src/bufwrite.c
-@@ -17,6 +17,27 @@
- # include <utime.h>		// for struct utimbuf
- #endif
- 
-+#ifdef __MVS__
-+int count_lines(FILE *fp) {
-+  int lines = 0;
-+  int ch;
-+
-+  rewind(fp);
-+
-+  while ((ch = fgetc(fp)) != EOF) {
-+    if (ch == '\n') {
-+      lines++;
-+    }
-+  }
-+
-+  if (ch != '\n' && lines > 0) {
-+    lines++;
-+  }
-+
-+  return lines;
-+}
-+#endif
-+
- #define SMALLBUFSIZE	256	// size of emergency write buffer
- 
- /*
-@@ -1857,7 +1878,6 @@ buf_write(
+@@ -1857,7 +1857,6 @@ buf_write(
  			}
  		    }
  		}
@@ -38,7 +10,7 @@ index 23cd884bf..73111be6d 100644
  restore_backup:
  		{
  		    stat_T	st;
-@@ -1898,6 +1918,21 @@ restore_backup:
+@@ -1898,6 +1897,21 @@ restore_backup:
  		    vim_free(wfname);
  		goto fail;
  	    }
@@ -60,9 +32,9 @@ index 23cd884bf..73111be6d 100644
  	    write_info.bw_fd = fd;
  
  #if defined(UNIX)
-@@ -2610,6 +2645,122 @@ nofail:
- 
- 	curbuf->b_no_eol_lnum = 0;  // in case it was set by the previous read
+@@ -2516,6 +2530,44 @@ restore_backup:
+ 	    && mch_remove(backup) != 0)
+ 	emsg(_(e_cant_delete_backup_file));
  
 +#ifdef __MVS__
 +  if (buf->is_dataset && write_bin) {
@@ -72,7 +44,7 @@ index 23cd884bf..73111be6d 100644
 +    // copy from temporary file back to dataset
 +    struct DFILE *dsfile = open_dataset(buf->dsname, NULL);
 +    if (!dsfile) {
-+      errmsg = (char_u *)_("cannot open dataset");
++      errmsg = (char_u *)_("Libdio failed to allocate");
 +      buffer = NULL;
 +      goto fail;
 +    }
@@ -83,94 +55,18 @@ index 23cd884bf..73111be6d 100644
 +      goto fail;
 +    }
 +
-+    int length_prefix = has_length_prefix(dsfile->recfm);
-+
-+    // Read temporary file into record buffer
-+    FILE *fp;
-+    if ((fp = fopen(fname, "r")) == NULL) {
-+      errmsg = (char_u *)_("cannot open temporary file");
-+      buffer = NULL;
++    if (read_temp_file_to_buffer(fname, dsfile) == NULL) {
++      errmsg = dsfile->msgbuff;
 +      close_dataset(dsfile);
 +      goto fail;
-+    }
-+
-+#define DS_MAX_REC_SIZE (32768)
-+
-+    long bufferSize = count_lines(fp) * dsfile->reclen * 2;
-+    rewind(fp);
-+
-+    char *line = malloc(DS_MAX_REC_SIZE);
-+    char *dsbuffer = malloc(bufferSize);
-+    int tot_size = 0;
-+    uint16_t reclen = 0;
-+
-+    int linenum = 0;
-+    while (fgets(line, DS_MAX_REC_SIZE, fp)) {
-+      linenum++;
-+      reclen = strlen(line) - 1; // ignore newline;
-+      if (reclen > buf->reclen) {
-+        errmsg_allocated = TRUE;
-+        errmsg = alloc(300);
-+        vim_snprintf((char *)errmsg, 300, "Line %d exceeded record length of %d",
-+                    linenum, buf->reclen);
-+        close_dataset(dsfile);
-+        free(line);
-+        free(dsbuffer);
-+        goto fail;
-+      }
-+
-+      __a2e_s(line);
-+      if (length_prefix) {
-+        if ((tot_size + sizeof(uint16_t) + reclen) > bufferSize) {
-+          fclose(fp);
-+          buffer = NULL;
-+          errmsg_allocated = TRUE;
-+          errmsg = alloc(300);
-+          vim_snprintf((char *)errmsg, 300,
-+                      "Exceeded buffer length (%d) on line %d", buf->reclen,
-+                      linenum);
-+          free(line);
-+          free(dsbuffer);
-+          close_dataset(dsfile);
-+          goto fail;
-+        }
-+        memcpy(&dsbuffer[tot_size], &reclen, sizeof(uint16_t));
-+        tot_size += sizeof(uint16_t);
-+        memcpy(&dsbuffer[tot_size], line, reclen);
-+        tot_size += reclen;
-+      } else {
-+        if ((tot_size + buf->reclen) > bufferSize) {
-+          fclose(fp);
-+          buffer = NULL;
-+          errmsg_allocated = TRUE;
-+          errmsg = alloc(300);
-+          vim_snprintf((char *)errmsg, 300,
-+                      "Exceeded buffer length (%d) on line %d", buf->reclen,
-+                      linenum);
-+          free(line);
-+          free(dsbuffer);
-+          close_dataset(dsfile);
-+          goto fail;
-+        }
-+        memcpy(&dsbuffer[tot_size], line, reclen);
-+        memset(&dsbuffer[tot_size + reclen], 0x40, buf->reclen - reclen);
-+        tot_size += buf->reclen;
-+      }
-+    }
-+    fclose(fp);
-+
-+    dsfile->buffer = dsbuffer;
-+    dsfile->bufflen = tot_size;
++    } 
 +
 +    if (write_dataset(dsfile)) {
 +      errmsg = dsfile->msgbuff;
 +      close_dataset(dsfile);
-+      free(line);
-+      free(dsbuffer);
 +      goto fail;
 +    }
-+    free(line);
-+    free(dsbuffer);
++
 +    if (close_dataset(dsfile)) {
 +      errmsg = dsfile->msgbuff;
 +      goto fail;
@@ -178,8 +74,6 @@ index 23cd884bf..73111be6d 100644
 +  }
 +#endif
 +
-+
-+
- 	// Apply POST autocommands.
- 	// Careful: The autocommands may call buf_write() recursively!
- 	// Only do this when a window was found for "buf".
+     goto nofail;
+ 
+     // Finish up.  We get here either after failure or success.
