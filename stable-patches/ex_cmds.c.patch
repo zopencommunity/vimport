@@ -1,0 +1,23 @@
+diff --git a/src/ex_cmds.c b/src/ex_cmds.c
+index acddd9c38..b0d3d37a3 100644
+--- a/src/ex_cmds.c
++++ b/src/ex_cmds.c
+@@ -2631,6 +2631,10 @@ do_ecmd(
+ 	}
+     }
+ 
++#ifdef __MVS__
++  if (is_dataset(sfname))
++    ffname = sfname;
++#endif
+     /*
+      * If the file was changed we may not be allowed to abandon it:
+      * - if we are going to re-edit the same file
+@@ -2649,7 +2653,6 @@ do_ecmd(
+ 	goto theend;
+     }
+ 
+-
+     // End Visual mode before switching to another buffer, so the text can be
+     // copied into the GUI selection buffer.
+     // Careful: may trigger ModeChanged() autocommand
