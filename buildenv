@@ -2,6 +2,7 @@
 VIM_VERSION="9.1.0736"
 
 export ZOPEN_BUILD_LINE="STABLE"
+export ZOPEN_CATEGORIES="editor development"
 export ZOPEN_STABLE_URL="https://github.com/vim/vim.git"
 export ZOPEN_STABLE_DEPS="git make zoslib ncurses diffutils coreutils findutils sed gawk python lua bash libdio cjson"
 export ZOPEN_STABLE_TAG="v${VIM_VERSION}"
