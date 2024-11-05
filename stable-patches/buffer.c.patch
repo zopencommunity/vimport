@@ -1,5 +1,5 @@
 diff --git a/src/buffer.c b/src/buffer.c
-index 34500e4ab..55c8421a2 100644
+index 34500e4ab..19c345812 100644
 --- a/src/buffer.c
 +++ b/src/buffer.c
 @@ -26,6 +26,9 @@
@@ -24,7 +24,7 @@ index 34500e4ab..55c8421a2 100644
      buf_T	*buf;
  #ifdef UNIX
      stat_T	st;
-@@ -2128,6 +2136,64 @@ buflist_new(
+@@ -2128,6 +2136,70 @@ buflist_new(
      if (top_file_num == 1)
  	hash_init(&buf_hashtab);
  
@@ -41,6 +41,12 @@ index 34500e4ab..55c8421a2 100644
 +
 +        if (dsfile->err) {
 +	        emsg(_(dsfile->msgbuff));
++          close_dataset(dsfile);
++          return NULL;
++        }
++
++        if ((dsfile->dsorg == D_PDSE || dsfile->dsorg == D_PDS) && !has_member(dsfile)) {
++          emsg(_("Only PDSE/PDS with members are currently supported."));
 +          close_dataset(dsfile);
 +          return NULL;
 +        }
@@ -89,7 +95,7 @@ index 34500e4ab..55c8421a2 100644
      fname_expand(curbuf, &ffname, &sfname);	// will allocate ffname
  
      /*
-@@ -2222,9 +2288,10 @@ buflist_new(
+@@ -2222,9 +2294,10 @@ buflist_new(
  
      if (ffname != NULL)
      {
@@ -102,7 +108,7 @@ index 34500e4ab..55c8421a2 100644
  
      clear_wininfo(buf);
      buf->b_wininfo = ALLOC_CLEAR_ONE(wininfo_T);
-@@ -2271,6 +2338,7 @@ buflist_new(
+@@ -2271,6 +2344,7 @@ buflist_new(
  	}
  	lastbuf = buf;
  
@@ -110,7 +116,7 @@ index 34500e4ab..55c8421a2 100644
  	if ((flags & BLN_REUSE) && buf_reuse.ga_len > 0)
  	{
  	    // Recycle a previously used buffer number.  Used for buffers which
-@@ -2325,6 +2393,13 @@ buflist_new(
+@@ -2325,6 +2399,13 @@ buflist_new(
  #endif
  
      buf->b_fname = buf->b_sfname;
