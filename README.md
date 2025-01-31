@@ -2,7 +2,7 @@
 
 # Vim
 
-Utility for managing virtual file systems
+A TUI editor
 
 # Installation and Usage
 
