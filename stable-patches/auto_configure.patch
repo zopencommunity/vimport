@@ -1,0 +1,12 @@
+diff --git a/src/auto/configure b/src/auto/configure
+index 5f75592..3073980 100755
+--- a/src/auto/configure
++++ b/src/auto/configure
+@@ -16627,7 +16627,6 @@ printf %s "checking for NLS... " >&6; }
+     have_gettext="no"
+     if test -n "$MSGFMT"; then
+       olibs=$LIBS
+-      LIBS=""
+       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ #include <libintl.h>
