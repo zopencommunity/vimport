@@ -1,14 +1,26 @@
-diff --git a/src/structs.h b/src/structs.h
-index 1a7a46c19..3ae060761 100644
---- a/src/structs.h
-+++ b/src/structs.h
-@@ -2811,6 +2811,9 @@ struct file_buffer
+diff --git i/src/structs.h w/src/structs.h
+index 725ec39..7d0044f 100644
+--- i/src/structs.h
++++ w/src/structs.h
+@@ -3122,7 +3122,6 @@ struct file_buffer
  				// b_ffname
      char_u	*b_fname;	// current file name, points to b_ffname or
  				// b_sfname
-+#ifdef __MVS__
-+    int needs_conversion;
-+#endif
- 
+-
  #ifdef UNIX
      int		b_dev_valid;	// TRUE when b_dev has a valid number
+     dev_t	b_dev;		// device number
+@@ -3601,6 +3600,13 @@ struct file_buffer
+ #ifdef FEAT_DIFF
+     int		b_diff_failed;	// internal diff failed for this buffer
+ #endif
++
++#ifdef __MVS__
++    int needs_conversion;
++    int is_dataset;
++    int reclen;
++    char *dsname;
++#endif
+ }; // file_buffer
+ 
+ 
