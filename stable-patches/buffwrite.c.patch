@@ -1,8 +1,26 @@
-diff --git a/src/bufwrite.c b/src/bufwrite.c
-index bf79ad5bf..78f98662b 100644
---- a/src/bufwrite.c
-+++ b/src/bufwrite.c
-@@ -1898,6 +1898,20 @@ restore_backup:
+diff --git i/src/bufwrite.c w/src/bufwrite.c
+index e88c7b8..8fa43c1 100644
+--- i/src/bufwrite.c
++++ w/src/bufwrite.c
+@@ -12,6 +12,9 @@
+  */
+ 
+ #include "vim.h"
++#ifdef __MVS__
++#include "dio.h"
++#endif
+ 
+ #if defined(HAVE_UTIME) && defined(HAVE_UTIME_H)
+ # include <utime.h>		// for struct utimbuf
+@@ -1857,7 +1860,6 @@ buf_write(
+ 			}
+ 		    }
+ 		}
+-
+ restore_backup:
+ 		{
+ 		    stat_T	st;
+@@ -1898,6 +1900,21 @@ restore_backup:
  		    vim_free(wfname);
  		goto fail;
  	    }
@@ -15,6 +33,7 @@ index bf79ad5bf..78f98662b 100644
 +        struct f_cnvrt cvtreq = {SETCVTON, 0, 1047};
 +        if (curbuf->needs_conversion)
 +          fcntl(fd, F_CONTROL_CVT, &cvtreq);
++        __setfdccsid(fd, 0);
 +      }
 +      else
 +        __chgfdccsid(fd, st_old.st_tag.ft_ccsid);
@@ -23,3 +42,48 @@ index bf79ad5bf..78f98662b 100644
  	    write_info.bw_fd = fd;
  
  #if defined(UNIX)
+@@ -2518,6 +2535,44 @@ restore_backup:
+ 	    && mch_remove(backup) != 0)
+ 	emsg(_(e_cant_delete_backup_file));
+ 
++#ifdef __MVS__
++  if (buf->is_dataset && write_bin) {
++    msg_puts_attr(_("\nATTENTION: Writing binary datasets it not supported.\n"),
++                  attr | MSG_HIST);
++  } else if (buf->is_dataset) {
++    // copy from temporary file back to dataset
++    struct DFILE *dsfile = open_dataset(buf->dsname, NULL);
++    if (!dsfile) {
++      errmsg = (char_u *)_("Libdio failed to allocate");
++      buffer = NULL;
++      goto fail;
++    }
++
++    if (dsfile->err) {
++      errmsg = dsfile->msgbuff;
++      close_dataset(dsfile);
++      goto fail;
++    }
++
++    if (read_temp_file_to_buffer(fname, dsfile) == NULL) {
++      errmsg = dsfile->msgbuff;
++      close_dataset(dsfile);
++      goto fail;
++    } 
++
++    if (write_dataset(dsfile)) {
++      errmsg = dsfile->msgbuff;
++      close_dataset(dsfile);
++      goto fail;
++    }
++
++    if (close_dataset(dsfile)) {
++      errmsg = dsfile->msgbuff;
++      goto fail;
++    }
++  }
++#endif
++
+     goto nofail;
+ 
+     // Finish up.  We get here either after failure or success.
