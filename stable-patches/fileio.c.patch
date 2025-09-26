@@ -1,8 +1,8 @@
 diff --git i/src/fileio.c w/src/fileio.c
-index d27a172..7db3fcc 100644
+index 5771a45..c419bb0 100644
 --- i/src/fileio.c
 +++ w/src/fileio.c
-@@ -485,6 +485,9 @@ readfile(
+@@ -495,6 +495,9 @@ readfile(
  				mch_access((char *)fname, W_OK))
  	    file_readonly = TRUE;
  	fd = mch_open((char *)fname, O_RDONLY | O_EXTRA, 0);
@@ -12,7 +12,7 @@ index d27a172..7db3fcc 100644
  #else
  	if (!newfile
  		|| readonlymode
-@@ -2718,6 +2721,21 @@ failed:
+@@ -2741,6 +2744,21 @@ failed:
      if (!(recoverymode && error))
  	retval = OK;
  
@@ -27,14 +27,14 @@ index d27a172..7db3fcc 100644
 +    snprintf(cmd, sizeof(cmd), "setlocal colorcolumn=%d", curbuf->b_p_tw);
 +    do_cmdline_cmd((char_u *)cmd);
 +    do_cmdline_cmd((char_u *)"setlocal nowrap");
-+    check_colorcolumn(curwin);
++    check_colorcolumn(NULL, curwin);
 +  }
 +#endif
 +
  theend:
      if (curbuf->b_ml.ml_mfp != NULL
  		       && curbuf->b_ml.ml_mfp->mf_dirty == MF_DIRTY_YES_NOSYNC)
-@@ -4182,6 +4200,62 @@ buf_check_timestamp(
+@@ -4202,6 +4220,62 @@ buf_check_timestamp(
  
      set_bufref(&bufref, buf);
  
