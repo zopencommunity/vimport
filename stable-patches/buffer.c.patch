@@ -1,0 +1,132 @@
+diff --git i/src/buffer.c w/src/buffer.c
+index 748ffda..391bd32 100644
+--- i/src/buffer.c
++++ w/src/buffer.c
+@@ -26,6 +26,9 @@
+  */
+ 
+ #include "vim.h"
++#ifdef __MVS__
++#include "dio.h"
++#endif
+ 
+ 
+ #ifdef FEAT_EVAL
+@@ -2156,6 +2159,11 @@ buflist_new(
+ {
+     char_u	*ffname = ffname_arg;
+     char_u	*sfname = sfname_arg;
++#ifdef __MVS__
++    int isdataset = FALSE;
++    int reclen = -1;
++    char * dsname = NULL;
++#endif
+     buf_T	*buf;
+ #ifdef UNIX
+     stat_T	st;
+@@ -2164,6 +2172,70 @@ buflist_new(
+     if (top_file_num == 1)
+ 	hash_init(&buf_hashtab);
+ 
++  // Dataset I/O
++#ifdef __MVS__
++    if (ffname != NULL)
++    {
++      if (is_dataset(ffname)) {
++        struct DFILE* dsfile = open_dataset(ffname, NULL);
++        if (!dsfile) {
++	        semsg(_("Could not open dataset for %s"), ffname);
++          return NULL;
++        }
++
++        if (dsfile->err) {
++	        emsg(_(dsfile->msgbuff));
++          close_dataset(dsfile);
++          return NULL;
++        }
++
++        if ((dsfile->dsorg == D_PDSE || dsfile->dsorg == D_PDS) && !has_member(dsfile)) {
++          emsg(_("Only PDSE/PDS with members are currently supported."));
++          close_dataset(dsfile);
++          return NULL;
++        }
++
++        if (read_dataset(dsfile) > 0) {
++	        emsg(_(dsfile->msgbuff));
++          close_dataset(dsfile);
++          return NULL;
++        }
++
++        // Store the original dataset name
++        dsname = vim_strsave(ffname);
++        reclen = dsfile->reclen;
++        isdataset = TRUE; 
++
++        // Create a temporary file to represent the dataset 
++        ffname = vim_tempname('z', TRUE);
++
++        // Map dataset to file path
++        char file_suffix[PATH_MAX];
++        char newpath[PATH_MAX];
++        map_to_unixfile(dsfile, file_suffix);
++        snprintf(newpath, PATH_MAX, "%s-%s", ffname, file_suffix);
++
++        // Set ffname and sfname to temporary
++        sfname = vim_strsave(newpath);
++        ffname = sfname;
++
++        if (dsfile->txtflag == 0 || dsfile->is_binary) 
++          curbuf->b_p_bin = TRUE;
++    
++        if (write_dataset_to_temp_file(dsfile, ffname, curbuf->b_p_bin) != 0) {
++          emsg(_("Error writing dataset contents to temporary file"));
++          close_dataset(dsfile);
++          return NULL;
++        }
++
++        //free(dsfile->buffer);
++        if (close_dataset(dsfile) > 0) {
++	        emsg(_(dsfile->msgbuff));
++          return NULL;
++        }
++      } 
++    } 
++#endif
+     fname_expand(curbuf, &ffname, &sfname);	// will allocate ffname
+ 
+     /*
+@@ -2262,9 +2334,10 @@ buflist_new(
+ 
+     if (ffname != NULL)
+     {
+-	buf->b_ffname = ffname;
+-	buf->b_sfname = vim_strsave(sfname);
++      buf->b_ffname = ffname;
++      buf->b_sfname = vim_strsave(sfname);
+     }
++   
+ 
+     clear_wininfo(buf);
+     buf->b_wininfo = ALLOC_CLEAR_ONE(wininfo_T);
+@@ -2311,6 +2384,7 @@ buflist_new(
+ 	}
+ 	lastbuf = buf;
+ 
++
+ 	if ((flags & BLN_REUSE) && buf_reuse.ga_len > 0)
+ 	{
+ 	    // Recycle a previously used buffer number.  Used for buffers which
+@@ -2365,6 +2439,13 @@ buflist_new(
+ #endif
+ 
+     buf->b_fname = buf->b_sfname;
++#ifdef __MVS__
++  if (isdataset) {
++    buf->is_dataset = isdataset;
++    buf->reclen = reclen;
++    buf->dsname = dsname;
++  }
++#endif
+ #ifdef UNIX
+     if (st.st_dev == (dev_T)-1)
+ 	buf->b_dev_valid = FALSE;

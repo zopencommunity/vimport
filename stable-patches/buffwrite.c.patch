@@ -1,8 +1,18 @@
 diff --git i/src/bufwrite.c w/src/bufwrite.c
-index e88c7b8..663e512 100644
+index e88c7b8..8fa43c1 100644
 --- i/src/bufwrite.c
 +++ w/src/bufwrite.c
-@@ -1857,7 +1857,6 @@ buf_write(
+@@ -12,6 +12,9 @@
+  */
+ 
+ #include "vim.h"
++#ifdef __MVS__
++#include "dio.h"
++#endif
+ 
+ #if defined(HAVE_UTIME) && defined(HAVE_UTIME_H)
+ # include <utime.h>		// for struct utimbuf
+@@ -1857,7 +1860,6 @@ buf_write(
  			}
  		    }
  		}
@@ -10,7 +20,7 @@ index e88c7b8..663e512 100644
  restore_backup:
  		{
  		    stat_T	st;
-@@ -1898,6 +1897,21 @@ restore_backup:
+@@ -1898,6 +1900,21 @@ restore_backup:
  		    vim_free(wfname);
  		goto fail;
  	    }
@@ -32,7 +42,7 @@ index e88c7b8..663e512 100644
  	    write_info.bw_fd = fd;
  
  #if defined(UNIX)
-@@ -2518,6 +2532,44 @@ restore_backup:
+@@ -2518,6 +2535,44 @@ restore_backup:
  	    && mch_remove(backup) != 0)
  	emsg(_(e_cant_delete_backup_file));
  
