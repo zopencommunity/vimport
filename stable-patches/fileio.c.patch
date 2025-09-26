@@ -1,8 +1,8 @@
-diff --git a/src/fileio.c b/src/fileio.c
-index 9916de8a6..e9f553673 100644
---- a/src/fileio.c
-+++ b/src/fileio.c
-@@ -472,6 +472,9 @@ readfile(
+diff --git i/src/fileio.c w/src/fileio.c
+index d27a172..7db3fcc 100644
+--- i/src/fileio.c
++++ w/src/fileio.c
+@@ -485,6 +485,9 @@ readfile(
  				mch_access((char *)fname, W_OK))
  	    file_readonly = TRUE;
  	fd = mch_open((char *)fname, O_RDONLY | O_EXTRA, 0);
@@ -12,3 +12,88 @@ index 9916de8a6..e9f553673 100644
  #else
  	if (!newfile
  		|| readonlymode
+@@ -2718,6 +2721,21 @@ failed:
+     if (!(recoverymode && error))
+ 	retval = OK;
+ 
++#ifdef __MVS__
++  // Set buffer properties for dataset
++  if (curbuf->is_dataset && !curbuf->b_p_bin) {
++    char cmd[256];
++    // Set textwidth to maxrecordlength + 1
++    curbuf->b_p_tw = curbuf->reclen + 1;
++
++    // Set colorcolumn and update accordingly
++    snprintf(cmd, sizeof(cmd), "setlocal colorcolumn=%d", curbuf->b_p_tw);
++    do_cmdline_cmd((char_u *)cmd);
++    do_cmdline_cmd((char_u *)"setlocal nowrap");
++    check_colorcolumn(curwin);
++  }
++#endif
++
+ theend:
+     if (curbuf->b_ml.ml_mfp != NULL
+ 		       && curbuf->b_ml.ml_mfp->mf_dirty == MF_DIRTY_YES_NOSYNC)
+@@ -4182,6 +4200,62 @@ buf_check_timestamp(
+ 
+     set_bufref(&bufref, buf);
+ 
++#if 0
++    // When a buffer is displayed in a window, and the file was changed outside
++    // of Vim, we may want to reload the file.
++    //
++    // This is not done for a buffer that is not loaded.  This might happen
++    // for a terminal buffer that is not active.
++    if (buf->b_ml.ml_mfp == NULL)
++	return;
++
++#ifdef __MVS__
++    if (buf->is_dataset && p_zsc[0] != 'o') // Check if 'zoschecksum' is not "off"
++    {
++        DatasetInfo new_info;
++        int changed = FALSE;
++
++        // Tier 1: Fast check (size and record count)
++        if (get_dataset_info(buf->dsname, &new_info) == 0)
++        {
++            if (new_info.ds_size != buf->b_dataset_size
++                    || new_info.ds_rec_count != buf->b_dataset_rec_count)
++            {
++                changed = TRUE;
++            }
++            // Tier 2: Full checksum if size/count match and 'zsc' is "full"
++            else if (p_zsc[0] == 'f') // 'zoschecksum' == "full"
++            {
++                char_u new_checksum[65];
++                if (get_dataset_checksum(buf->dsname, new_checksum) == 0)
++                {
++                    if (STRCMP(new_checksum, buf->b_dataset_checksum) != 0)
++                        changed = TRUE;
++                }
++            }
++        }
++
++        if (changed)
++        {
++            // Trigger Vim's standard "file changed" prompt.
++            buf_time_changed(buf, buf->b_fname, TRUE);
++
++            // Update the baseline info to prevent repeated warnings.
++            buf->b_dataset_size = new_info.ds_size;
++            buf->b_dataset_rec_count = new_info.ds_rec_count;
++            if (p_zsc[0] == 'f') // If we did a full check, update the checksum
++            {
++                if (get_dataset_checksum(buf->dsname, buf->b_dataset_checksum) != 0)
++                    buf->b_dataset_checksum[0] = NUL;
++            }
++        }
++        return; // Skip the normal file check
++    }
++#endif
++#endif
++
++
++
+     // If there is no file name, the buffer is not loaded, 'buftype' is
+     // set, we are in the middle of a save or being called recursively: ignore
+     // this buffer.
