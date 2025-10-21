@@ -1,0 +1,16 @@
+diff --git i/src/xxd/xxd.c w/src/xxd/xxd.c
+index b46cee41f..252c864d6 100644
+--- i/src/xxd/xxd.c
++++ w/src/xxd/xxd.c
+@@ -1015,6 +1015,11 @@ main(int argc, char *argv[])
+       rewind(fpo);
+     }
+ 
++#ifdef __MVS__
++    // Disable auto-conversion on input file descriptors
++    __disableautocvt(fileno(fp));
++#endif
++
+   if (revert)
+     switch (hextype)
+       {
