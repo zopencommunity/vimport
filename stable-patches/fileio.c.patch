@@ -1,8 +1,18 @@
-diff --git i/src/fileio.c w/src/fileio.c
-index 5771a45..c419bb0 100644
---- i/src/fileio.c
-+++ w/src/fileio.c
-@@ -495,6 +495,9 @@ readfile(
+diff --git a/src/fileio.c b/src/fileio.c
+index 8156b80..295dd2f 100644
+--- a/src/fileio.c
++++ b/src/fileio.c
+@@ -23,6 +23,9 @@
+ #if defined(VMS) && defined(HAVE_XOS_R_H)
+ # include <x11/xos_r.h>
+ #endif
++#if defined(__MVS__)
++# include <zos.h>
++#endif
+ 
+ // Is there any system that doesn't have access()?
+ #define USE_MCH_ACCESS
+@@ -495,6 +498,9 @@ readfile(
  				mch_access((char *)fname, W_OK))
  	    file_readonly = TRUE;
  	fd = mch_open((char *)fname, O_RDONLY | O_EXTRA, 0);
@@ -12,7 +22,7 @@ index 5771a45..c419bb0 100644
  #else
  	if (!newfile
  		|| readonlymode
-@@ -2741,6 +2744,21 @@ failed:
+@@ -2741,6 +2747,21 @@ failed:
      if (!(recoverymode && error))
  	retval = OK;
  
@@ -34,7 +44,7 @@ index 5771a45..c419bb0 100644
  theend:
      if (curbuf->b_ml.ml_mfp != NULL
  		       && curbuf->b_ml.ml_mfp->mf_dirty == MF_DIRTY_YES_NOSYNC)
-@@ -4202,6 +4220,62 @@ buf_check_timestamp(
+@@ -4201,6 +4222,62 @@ buf_check_timestamp(
  
      set_bufref(&bufref, buf);
  
