@@ -1,8 +1,19 @@
-diff --git i/src/xxd/xxd.c w/src/xxd/xxd.c
-index b46cee41f..252c864d6 100644
---- i/src/xxd/xxd.c
-+++ w/src/xxd/xxd.c
-@@ -1015,6 +1015,11 @@ main(int argc, char *argv[])
+diff --git a/src/xxd/xxd.c b/src/xxd/xxd.c
+index ddc11ee..54c5db2 100644
+--- a/src/xxd/xxd.c
++++ b/src/xxd/xxd.c
+@@ -117,7 +117,9 @@
+ # include <unix.h>	/* for fdopen() on MAC */
+ #endif
+ 
+-
++#ifdef __MVS__
++# include <zos.h>
++#endif
+ /*  This corrects the problem of missing prototypes for certain functions
+  *  in some GNU installations (e.g. SunOS 4.1.x).
+  *  Darren Hiebert <darren@hmi.com> (sparc-sun-sunos4.1.3_U1/2.7.2.2)
+@@ -1016,6 +1018,11 @@ main(int argc, char *argv[])
        rewind(fpo);
      }
  
